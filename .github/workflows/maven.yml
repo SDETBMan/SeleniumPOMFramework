@@ -24,14 +24,14 @@ jobs:
 
       # 3. Spin up Docker Grid (Background Service)
       - name: Start Docker Grid
-        run: docker-compose up -d
+        run: docker compose up -d
 
       # 4. Wait for Grid to be Ready (Health Check)
       - name: Wait for Selenium Hub
         run: |
           echo "Waiting for Selenium Grid..."
           sleep 15
-          docker-compose ps
+          docker compose ps
 
       # 5. Run Tests with Maven
       # UPDATED: Passing arguments to ConfigReader
