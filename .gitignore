@@ -1,0 +1,19 @@
+# Compiled class files
+target/
+*.class
+
+# Log files
+*.log
+
+# IntelliJ IDEA (IDE) specific files (Optional, but recommended to keep personal settings local)
+.idea/
+*.iml
+
+# TestNG / Allure Reports (Temporary results)
+test-output/
+allure-results/
+allure-report/
+
+# OS specific
+.DS_Store
+Thumbs.db

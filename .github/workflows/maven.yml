@@ -1,0 +1,47 @@
+name: Selenium POM CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout Code
+      - uses: actions/checkout@v3
+
+      # 2. Set up Java
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      # 3. Spin up Docker Grid (Background Service)
+      - name: Start Docker Grid
+        run: docker-compose up -d
+
+      # 4. Wait for Grid to be Ready (Health Check)
+      - name: Wait for Selenium Hub
+        run: |
+          echo "Waiting for Selenium Grid..."
+          sleep 15
+          docker-compose ps
+
+      # 5. Run Tests with Maven
+      # UPDATED: Passing arguments to ConfigReader
+      - name: Run Tests with Maven
+        run: mvn clean test -DsuiteXmlFile=testng.xml -Dexecution_mode=grid -Dheadless=true
+
+      # 6. Generate Report (Optional Artifact)
+      - name: Upload Allure Report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: allure-results
+          path: allure-results
