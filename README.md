@@ -1,72 +1,118 @@
-# Selenium POM Framework 🚀
+# Selenium POM Framework (TestNG + Docker + CI/CD)
 
-![Java](https://img.shields.io/badge/Java-17-orange)
-![Selenium](https://img.shields.io/badge/Selenium-4.16-green)
-![TestNG](https://img.shields.io/badge/TestNG-7.9-blue)
-![Docker](https://img.shields.io/badge/Docker-Enabled-2496ED)
-![Allure](https://img.shields.io/badge/Allure-Report-yellow)
+A robust, scalable Test Automation Framework built using **Java**, **Selenium WebDriver**, and **TestNG**. This project implements the **Page Object Model (POM)** design pattern and supports **Cross-Browser Testing** (Chrome, Firefox, Edge) on both local machines and a **Dockerized Selenium Grid**.
 
-## 📌 Overview
-This repository contains a robust **Test Automation Framework** built using the **Page Object Model (POM)** design pattern. It is engineered to support scalable, cross-browser execution on a **Selenium Grid (Dockerized)** and includes advanced features like thread-safe driver management, automated retries, and Slack notifications.
+[![Selenium POM CI](https://github.com/SDETBMan/SeleniumPOMFramework/actions/workflows/maven.yml/badge.svg)](https://github.com/SDETBMan/SeleniumPOMFramework/actions/workflows/maven.yml)
 
-The framework is designed to demonstrate **modern QA architecture** principles suitable for enterprise-grade applications.
+## Key Features
 
-## 🏗️ Architecture
-The framework follows a modular structure to separate concerns:
-* **Test Layer:** TestNG classes (`src/test/java`) containing assertions and business logic.
-* **Page Layer:** Page Object classes (`src/main/java`) encapsulating web elements and interactions.
-* **Driver Layer:** Thread-safe `DriverManager` using `ThreadLocal` for parallel execution.
-* **Utility Layer:** Helpers for configuration, listeners, and retry logic.
-* **Infrastructure:** `docker-compose.yaml` for spinning up Selenium Hub and Nodes.
+* **Page Object Model (POM):** Clean separation between test logic and page locators.
+* **Hybrid Execution:** Run tests locally or on a remote Docker Grid via `DriverFactory`.
+* **Test Pyramid Coverage:** Supports Unit, Integration (API), and UI (E2E) tests.
+* **Cross-Browser Support:** Chrome, Firefox, Microsoft Edge.
+* **Parallel Execution:** configured via `testng.xml` (Thread-safe `ThreadLocal` driver management).
+* **CI/CD Ready:** Integrated with GitHub Actions for automatic execution on push.
+* **Reporting:** Allure Reports integration.
 
-## 🛠️ Tech Stack
-| Component | Technology | Usage |
-| :--- | :--- | :--- |
-| **Language** | Java 17 | Core programming language |
-| **Web Driver** | Selenium 4 | Browser automation |
-| **Runner** | TestNG | Test execution and assertion |
-| **Design Pattern** | Page Object Model | Code maintainability and reuse |
-| **Reporting** | Allure | Rich HTML reports with screenshots |
-| **Infrastructure** | Docker | Containerized Selenium Grid |
-| **CI/CD** | GitHub Actions | Automated build pipeline |
-| **Notifications** | Slack Webhook | Real-time test status alerts |
+---
 
-## 🚀 Getting Started
+## Tech Stack
+
+* **Language:** Java 17
+* **Build Tool:** Maven
+* **Test Runner:** TestNG
+* **Web Automation:** Selenium WebDriver 4.x
+* **API Automation:** RestAssured
+* **Containerization:** Docker & Docker Compose
+
+---
+
+## Getting Started
 
 ### Prerequisites
 * Java JDK 17+
 * Maven 3.8+
-* Docker Desktop (for Grid execution)
+* Docker Desktop (optional, for Grid execution)
 
 ### Installation
-1.  **Clone the repository:**
+1.  Clone the repository:
     ```bash
-    git clone [https://github.com/SDETBMan/selenium-pom-framework.git](https://github.com/yourusername/selenium-pom-framework.git)
+    git clone [https://github.com/SDETBMan/SeleniumPOMFramework.git](https://github.com/SDETBMan/SeleniumPOMFramework.git)
     ```
-2.  **Navigate to the project directory:**
+2.  Install dependencies:
     ```bash
-    cd selenium-pom-framework
-    ```
-
-### 🏃 Running Tests
-
-1. **Start the Docker Grid**
-Before running tests in `grid` mode, ensure the infrastructure is up:
-    ```bash
-    docker-compose up -d
+    mvn clean install -DskipTests
     ```
 
-2. **Execute via Maven**
+---
+
+## Running Tests
+
+### 1. Run All Tests (via testng.xml)
+
+This executes the full suite defined in `testng.xml`, including Unit, Integration, and Cross-Browser UI tests.
+```bash
+  mvn clean test -DsuiteXmlFile=testng.xml
+```
+### 2. Execute via Maven
+
 Run the full regression suite defined in testng.xml:
-    ```bash
-    mvn clean test -DsuiteXmlFile=testng.xml
-    ```
+```bash
+  mvn clean test -DsuiteXmlFile=testng.xml
+```
 
-3. **View Reports**
+### 3. Run Specific Groups
+You can filter tests by their @Test(groups = "...") tag.
+
+* Smoke Tests (Critical Paths on Chrome):
+```bash
+  mvn clean test -Dgroups=smoke
+```
+* Regression Tests (Deep dive on Firefox/Edge):
+```bash
+  mvn clean test -Dgroups=regression
+```  
+* Unit Tests (Fast, no browser):
+```bash
+  mvn clean test -Dgroups=unit
+```
+### 4. Execution Modes (Local vs. Grid)
+   The framework controls where the browser launches using the execution_mode property.
+* Run Locally (Default): Launches the browser on your machine.
+```bash
+  mvn clean test -Dexecution_mode=local
+```
+* Run on Docker Grid: Connects to the Selenium Hub running in Docker.
+```bash
+  mvn clean test -Dexecution_mode=grid
+```
+* Headless Mode:
+```bash
+  mvn clean test -Dheadless=true
+```
+### 5. View Reports
 Generate and open the Allure report in your default browser:
-    ```bash
-    mvn allure:serve
-    ```
+```bash
+  mvn allure:serve
+```
+## Docker Setup (Selenium Grid)
+
+This framework includes a docker-compose.yaml to spin up a local Selenium Grid with Chrome, Firefox, and Edge nodes.
+
+### 1. Start the Grid:
+```bash
+  docker compose up -d
+```
+### 2. Check Status: Open your browser and go to http://localhost:4444 to see the Selenium Grid Dashboard.
+
+### 3. Run Tests on Grid:
+```bash
+mvn clean test -Dexecution_mode=grid
+```
+### 4. Stop the Grid:
+```bash
+  docker compose down
+```
 
 📂 Project Structure
 ```
@@ -83,23 +129,23 @@ src
 └── docker-compose.yaml  # Selenium Grid Configuration
 ```
 
-⚙️ CI/CD Pipeline
+### CI/CD Pipeline
 This project includes a GitHub Actions workflow that triggers on every push to main.
 
-Sets up Java 17 environment.
+* Sets up Java 17 environment.
 
-Spins up the Selenium Grid services.
+* Spins up the Selenium Grid services.
 
-Executes tests in Headless mode.
+* Executes tests in Headless mode.
 
-Publishes the Allure Report artifact.
+* Publishes the Allure Report artifact.
 
 ---
 
 ### 3. The GitHub Action Workflow
-This file will automatically run your tests every time you push code to GitHub. It even spins up the Docker containers inside the GitHub runner!
+This file will automatically run the tests every time code is pushed to GitHub. It also spins up the Docker containers inside the GitHub runner.
 
-**File Location:** `.github/workflows/maven.yml` (Create these folders if they don't exist)
+**File Location:** `.github/workflows/maven.yml`
 
 ```yaml
 name: Selenium POM CI
