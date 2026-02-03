@@ -12,7 +12,7 @@ jobs:
 
     steps:
       # 1. Checkout Code
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       # 2. Set up Java
       - name: Set up JDK 17
@@ -41,7 +41,7 @@ jobs:
       # 6. Generate Report (Optional Artifact)
       - name: Upload Allure Report
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: allure-results
           path: allure-results
