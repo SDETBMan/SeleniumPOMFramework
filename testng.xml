@@ -8,7 +8,7 @@
             <include name="integration"/>
             <include name="smoke"/>
             <include name="regression"/>
-        </define>
+            <include name="mobile"/> </define>
     </groups>
 
     <listeners>
@@ -25,7 +25,7 @@
             </run>
         </groups>
         <classes>
-            <class name="com.framework.tests.unit.StringUtilsTest" />
+            <class name="com.framework.unit.StringUtilsTest" />
         </classes>
     </test>
 
@@ -36,7 +36,7 @@
             </run>
         </groups>
         <classes>
-            <class name="com.framework.tests.api.UserApiTest" />
+            <class name="com.framework.api.UserApiTest" />
         </classes>
     </test>
 
@@ -49,6 +49,14 @@
         </groups>
         <classes>
             <class name="com.framework.tests.LoginTest" />
+        </classes>
+    </test>
+
+    <test name="Mobile - Android">
+        <parameter name="browser" value="android" />
+        <parameter name="headless" value="false" />
+        <classes>
+            <class name="com.framework.tests.MobileLoginTest" />
         </classes>
     </test>
 

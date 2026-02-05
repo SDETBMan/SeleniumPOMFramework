@@ -17,9 +17,25 @@ public class LoginPage extends BasePage {
     }
 
     // 2. Public Actions
-    public void login(String username, String password) {
+
+    // Type the username
+    public void enterUsername(String username) {
+        // 'writeText' is a helper in your BasePage (or use driver.findElement...sendKeys)
+        driver.findElement(usernameField).sendKeys(username);
+    }
+
+    // Type the password
+    public void enterPassword(String password) {
+        driver.findElement(loginButton).click();
+    }
+
+    public void clickLogin(String username, String password) {
         enterText(usernameField, username);
         enterText(passwordField, password);
+
+    }
+
+    public void clickLoginButton() {
         click(loginButton);
     }
 

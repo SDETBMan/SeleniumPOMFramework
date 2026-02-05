@@ -1,5 +1,6 @@
 package com.framework.tests;
 
+import com.framework.base.BaseTest;
 import com.framework.driver.DriverManager;
 import com.framework.pages.LoginPage;
 import com.framework.utils.ConfigReader;
@@ -23,7 +24,7 @@ public class LoginTest extends BaseTest {
         LoginPage loginPage = new LoginPage(driver);
 
         // Read sensitive data from Config instead of hardcoding
-        loginPage.login(
+        loginPage.clickLogin(
                 ConfigReader.getProperty("username"),
                 ConfigReader.getProperty("password")
         );
@@ -37,7 +38,7 @@ public class LoginTest extends BaseTest {
         LoginPage loginPage = new LoginPage(driver);
 
         // Perform Action
-        loginPage.login("wrong_user", "wrong_pass");
+        loginPage.clickLogin("wrong_user", "wrong_pass");
 
         // Assertion
         String actualError = loginPage.getErrorMessage();
