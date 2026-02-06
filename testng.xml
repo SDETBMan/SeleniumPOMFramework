@@ -2,6 +2,14 @@
 <!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
 <suite name="Master Automation Suite" parallel="false" thread-count="1">
 
+    <groups>
+        <define name="all-groups">
+            <include name="smoke"/>
+            <include name="regression"/>
+            <include name="web"/>
+        </define>
+    </groups>
+
     <listeners>
         <listener class-name="io.qameta.allure.testng.AllureTestNg"/>
         <listener class-name="com.framework.listeners.TestListener"/>
@@ -10,35 +18,26 @@
 
     <parameter name="headless" value="true" />
 
-    <test name="Unit Tests">
-        <classes>
-            <class name="com.framework.unit.StringUtilsTest" />
-        </classes>
-    </test>
-
-    <test name="Integration Tests">
-        <classes>
-            <class name="com.framework.api.UserApiTest" />
-        </classes>
-    </test>
-
-    <test name="UI - Chrome (Smoke)">
+    <test name="UI - Chrome (Regression)">
         <parameter name="browser" value="chrome" />
+        <groups>
+            <run>
+                <include name="regression" />
+            </run>
+        </groups>
         <classes>
             <class name="com.framework.tests.LoginTest" />
             <class name="com.framework.tests.DashboardTest" />
         </classes>
     </test>
 
-    <test name="UI - Firefox">
+    <test name="UI - Firefox (Regression)">
         <parameter name="browser" value="firefox" />
-        <classes>
-            <class name="com.framework.tests.LoginTest" />
-        </classes>
-    </test>
-
-    <test name="UI - Edge">
-        <parameter name="browser" value="edge" />
+        <groups>
+            <run>
+                <include name="regression" />
+            </run>
+        </groups>
         <classes>
             <class name="com.framework.tests.LoginTest" />
         </classes>
