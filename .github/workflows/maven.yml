@@ -36,7 +36,7 @@ jobs:
       # 5. Run Tests with Maven
       # UPDATED: Passing arguments to ConfigReader
       - name: Run Tests with Maven
-        run: mvn clean test -DsuiteXmlFile=testng.xml -Dexecution_mode=grid -Dheadless=true -Dallure.results.directory=target/allure-results
+        run: mvn clean test -DsuiteXmlFile=testng.xml -Dexecution_mode=grid -Dheadless=true
 
       # 6. Generate Report (Optional Artifact)
       - name: Upload Allure Report
@@ -44,4 +44,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: allure-results
-          path: target/allure-results
+          path: allure-results

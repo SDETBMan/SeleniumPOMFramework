@@ -1,19 +1,14 @@
-# Compiled class files
+# --- .gitignore ---
+
+# 1. Ignore the Build Directory (Contains target/allure-results)
 target/
-*.class
 
-# Log files
-*.log
-
-# IntelliJ IDEA (IDE) specific files (Optional, but recommended to keep personal settings local)
+# 2. Ignore IDE files (IntelliJ)
 .idea/
 *.iml
 
-# TestNG / Allure Reports (Temporary results)
-test-output/
-allure-results/
-allure-report/
+# 3. Ignore Allure System Files (The software binaries)
+.allure/
 
-# OS specific
-.DS_Store
-Thumbs.db
+# 4. Ignore Root Results (Just in case a default run happens)
+allure-results/
