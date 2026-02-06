@@ -37,6 +37,14 @@ jobs:
       # UPDATED: Passing arguments to ConfigReader
       - name: Run Tests with Maven
         run: mvn clean test -DsuiteXmlFile=testng.xml -Dexecution_mode=grid -Dheadless=true
+          
+          # --- NEW DEBUG STEP ---
+               - name: List Files (Debug)
+               if: always()
+               run: |
+                 echo "Listing Root Directory:"
+                 ls -R
+          # ----------------------
 
       # 6. Generate Report (Optional Artifact)
       - name: Upload Allure Report
