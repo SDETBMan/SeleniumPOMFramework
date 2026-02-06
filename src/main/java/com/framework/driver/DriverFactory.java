@@ -1,8 +1,7 @@
 package com.framework.driver;
 
-
 import com.framework.utils.ConfigReader;
-import com.epam.healenium.SelfHealingDriver; // ✅ Healenium Import
+import com.epam.healenium.SelfHealingDriver;
 import io.appium.java_client.android.AndroidDriver;
 import io.appium.java_client.android.options.UiAutomator2Options;
 import io.appium.java_client.ios.IOSDriver;
@@ -32,7 +31,7 @@ public class DriverFactory {
         WebDriver delegate = null;
 
         String mode = ConfigReader.getProperty("execution_mode");
-        String gridUrl = ConfigReader.getProperty("grid_url");
+        String gridUrl = ConfigReader.getProperty("grid_url"); // e.g., http://localhost:4444
         String cloudUrl = ConfigReader.getProperty("cloud_grid_url");
         String appiumUrl = "http://127.0.0.1:4723";
 
@@ -51,7 +50,12 @@ public class DriverFactory {
 
         // WEB OPTIONS
         ChromeOptions chromeOptions = new ChromeOptions();
-        if (isHeadless) chromeOptions.addArguments("--headless");
+        if (isHeadless) {
+            chromeOptions.addArguments("--headless");
+            chromeOptions.addArguments("--disable-gpu");
+            chromeOptions.addArguments("--no-sandbox");
+            chromeOptions.addArguments("--disable-dev-shm-usage");
+        }
 
         FirefoxOptions firefoxOptions = new FirefoxOptions();
         if (isHeadless) firefoxOptions.addArguments("-headless");
@@ -61,7 +65,7 @@ public class DriverFactory {
 
         // ANDROID OPTIONS
         UiAutomator2Options androidOptions = new UiAutomator2Options();
-        if (browser.equalsIgnoreCase("android")) {
+        if ("android".equalsIgnoreCase(browser)) {
             androidOptions.setDeviceName(ConfigReader.getProperty("android_device_name"));
             androidOptions.setApp(ConfigReader.getProperty("android_app_path"));
             androidOptions.setAutomationName("UiAutomator2");
@@ -71,7 +75,7 @@ public class DriverFactory {
 
         // iOS OPTIONS
         XCUITestOptions iosOptions = new XCUITestOptions();
-        if (browser.equalsIgnoreCase("ios")) {
+        if ("ios".equalsIgnoreCase(browser)) {
             iosOptions.setDeviceName(ConfigReader.getProperty("ios_device_name"));
             iosOptions.setPlatformVersion(ConfigReader.getProperty("ios_version"));
             iosOptions.setApp(ConfigReader.getProperty("ios_app_path"));
@@ -82,7 +86,7 @@ public class DriverFactory {
         // 2. EXECUTION LOGIC
         // ==========================================================
 
-        if (mode.equalsIgnoreCase("grid")) {
+        if ("grid".equalsIgnoreCase(mode)) {
             URL url = new URL(gridUrl);
             switch (browser.toLowerCase()) {
                 case "chrome":  delegate = new RemoteWebDriver(url, chromeOptions); break;
@@ -93,15 +97,15 @@ public class DriverFactory {
                 default: throw new IllegalArgumentException("Invalid grid browser: " + browser);
             }
 
-        } else if (mode.equalsIgnoreCase("cloud")) {
+        } else if ("cloud".equalsIgnoreCase(mode)) {
             // CLOUD EXECUTION
-            if (browser.equalsIgnoreCase("android")) {
+            if ("android".equalsIgnoreCase(browser)) {
                 androidOptions.setCapability("browserstack.user", ConfigReader.getProperty("cloud_username"));
                 androidOptions.setCapability("browserstack.key", ConfigReader.getProperty("cloud_key"));
                 androidOptions.setApp(ConfigReader.getProperty("cloud_android_app"));
                 delegate = new AndroidDriver(new URL(cloudUrl), androidOptions);
 
-            } else if (browser.equalsIgnoreCase("ios")) {
+            } else if ("ios".equalsIgnoreCase(browser)) {
                 iosOptions.setCapability("browserstack.user", ConfigReader.getProperty("cloud_username"));
                 iosOptions.setCapability("browserstack.key", ConfigReader.getProperty("cloud_key"));
                 iosOptions.setApp(ConfigReader.getProperty("cloud_ios_app"));
@@ -118,7 +122,7 @@ public class DriverFactory {
 
         } else {
             // --- LOCAL EXECUTION ---
-            if (mode.equalsIgnoreCase("mobile") || browser.equalsIgnoreCase("android")) {
+            if ("mobile".equalsIgnoreCase(mode) || "android".equalsIgnoreCase(browser)) {
                 System.out.println("DEBUG: Starting Local Android Driver...");
                 delegate = new AndroidDriver(new URL(appiumUrl), androidOptions);
             } else {
@@ -128,11 +132,7 @@ public class DriverFactory {
                     case "firefox": delegate = new FirefoxDriver(firefoxOptions); break;
                     case "edge":    delegate = new EdgeDriver(edgeOptions); break;
                     default:
-                        if (browser.equalsIgnoreCase("android")) {
-                            delegate = new AndroidDriver(new URL(appiumUrl), androidOptions);
-                        } else {
-                            throw new IllegalArgumentException("Invalid local browser: " + browser);
-                        }
+                        throw new IllegalArgumentException("Invalid local browser: " + browser);
                 }
             }
         }
@@ -143,16 +143,18 @@ public class DriverFactory {
         }
 
         // ==========================================================
-        // 4. HEALENIUM INTEGRATION (The "Magic" Step) 🎩
+        // 4. HEALENIUM INTEGRATION (Temporarily Disabled for CI) 🛑
         // ==========================================================
-        // We only wrap Web Browsers. Mobile/Appium often requires a different setup.
-        boolean isMobile = browser.equalsIgnoreCase("android") || browser.equalsIgnoreCase("ios");
 
+        // FIX: Commented out to prevent hanging when backend is missing
+        /* boolean isMobile = "android".equalsIgnoreCase(browser) || "ios".equalsIgnoreCase(browser);
         if (delegate != null && !isMobile) {
             System.out.println("DEBUG: Wrapping driver with Healenium for Self-Healing...");
             return SelfHealingDriver.create(delegate);
         }
+        */
 
+        // Return RAW driver to avoid connection timeouts
         return delegate;
     }
 }
