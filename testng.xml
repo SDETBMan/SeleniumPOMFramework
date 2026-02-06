@@ -52,13 +52,13 @@
         </classes>
     </test>
 
-    <test name="Mobile - Android">
-        <parameter name="browser" value="android" />
-        <parameter name="headless" value="false" />
-        <classes>
-            <class name="com.framework.tests.MobileLoginTest" />
-        </classes>
-    </test>
+<!--    <test name="Mobile - Android">-->
+<!--       <parameter name="browser" value="android" />-->
+<!--       <parameter name="headless" value="false" />-->
+<!--        <classes>-->
+<!--            <class name="com.framework.tests.MobileLoginTest" />-->
+<!--        </classes>-->
+<!--    </test>-->
 
     <test name="UI - Firefox (Regression)">
         <parameter name="browser" value="firefox" />
@@ -85,3 +85,17 @@
     </test>
 
 </suite>
+
+
+
+
+
+<!--        ### **Summary of the Fix**-->
+
+<!--        1.  **Local Work:** When *you* want to work on Mobile, you will:-->
+<!--        * Uncomment the block in `testng.xml`.-->
+<!--        * Set `config.properties` to `mobile`.-->
+<!--        2.  **Pushing to Git:** Before you commit/push:-->
+<!--        * Revert `config.properties` to `web`.-->
+<!--        * Comment out the Mobile block in `testng.xml`.-->
+
