@@ -8,6 +8,7 @@
             <include name="integration"/>
             <include name="smoke"/>
             <include name="regression"/>
+            <include name="web"/>
             <include name="mobile"/>
         </define>
     </groups>
@@ -46,6 +47,22 @@
         <groups>
             <run>
                 <include name="smoke" />
+                <include name="regression" />
+                <include name="web" />
+            </run>
+        </groups>
+        <classes>
+            <class name="com.framework.tests.LoginTest" />
+            <class name="com.framework.tests.DashboardTest" />
+        </classes>
+    </test>
+
+    <test name="UI - Firefox">
+        <parameter name="browser" value="firefox" />
+        <groups>
+            <run>
+                <include name="regression" />
+                <include name="web" />
             </run>
         </groups>
         <classes>
@@ -53,37 +70,31 @@
         </classes>
     </test>
 
-<!--    <test name="Mobile - Android">-->
-<!--       <parameter name="browser" value="android" />-->
-<!--       <parameter name="headless" value="false" />-->
-<!--        <classes>-->
-<!--            <class name="com.framework.tests.MobileLoginTest" />-->
-<!--        </classes>-->
-<!--    </test>-->
+    <test name="UI - Edge">
+        <parameter name="browser" value="edge" />
+        <groups>
+            <run>
+                <include name="regression" />
+                <include name="web" />
+            </run>
+        </groups>
+        <classes>
+            <class name="com.framework.tests.LoginTest" />
+        </classes>
+    </test>
 
-<!--    <test name="UI - Firefox (Regression)">-->
-<!--        <parameter name="browser" value="firefox" />-->
-<!--        <groups>-->
-<!--            <run>-->
-<!--                <include name="regression" />-->
-<!--            </run>-->
-<!--        </groups>-->
-<!--        <classes>-->
-<!--            <class name="com.framework.tests.LoginTest" />-->
-<!--        </classes>-->
-<!--    </test>-->
-
-<!--    <test name="UI - Edge (Regression)">-->
-<!--        <parameter name="browser" value="edge" />-->
-<!--        <groups>-->
-<!--            <run>-->
-<!--                <include name="regression" />-->
-<!--            </run>-->
-<!--        </groups>-->
-<!--        <classes>-->
-<!--            <class name="com.framework.tests.LoginTest" />-->
-<!--        </classes>-->
-<!--    </test>-->
+    <test name="Mobile - Android">
+        <parameter name="browser" value="android" />
+        <parameter name="headless" value="false" />
+        <groups>
+            <run>
+                <include name="mobile" />
+            </run>
+        </groups>
+        <classes>
+            <class name="com.framework.tests.MobileLoginTest" />
+        </classes>
+    </test>
 
 </suite>
 

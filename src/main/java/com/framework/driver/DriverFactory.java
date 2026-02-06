@@ -2,6 +2,7 @@ package com.framework.driver;
 
 
 import com.framework.utils.ConfigReader;
+import com.epam.healenium.SelfHealingDriver; // ✅ Healenium Import
 import io.appium.java_client.android.AndroidDriver;
 import io.appium.java_client.android.options.UiAutomator2Options;
 import io.appium.java_client.ios.IOSDriver;
@@ -22,24 +23,25 @@ import java.util.Map;
 
 /**
  * DriverFactory: Universal logic for Web, Android, and iOS.
+ * Integrated with Healenium for Self-Healing Web Tests.
  */
 public class DriverFactory {
 
     public static WebDriver createInstance(String browser, String headless) throws MalformedURLException {
-        WebDriver driver = null;
+        // We use 'delegate' to hold the raw driver before wrapping it
+        WebDriver delegate = null;
 
         String mode = ConfigReader.getProperty("execution_mode");
         String gridUrl = ConfigReader.getProperty("grid_url");
         String cloudUrl = ConfigReader.getProperty("cloud_grid_url");
         String appiumUrl = "http://127.0.0.1:4723";
 
-        // --- DEBUG PRINT (This is what we need to see!) ---
+        // --- DEBUG PRINT ---
         System.out.println("=========================================");
         System.out.println("DEBUG: DriverFactory initialized.");
         System.out.println("DEBUG: Execution Mode from Config: [" + mode + "]");
         System.out.println("DEBUG: Browser/Platform Requested: [" + browser + "]");
         System.out.println("=========================================");
-        // --------------------------------------------------
 
         boolean isHeadless = Boolean.parseBoolean(headless);
 
@@ -63,12 +65,8 @@ public class DriverFactory {
             androidOptions.setDeviceName(ConfigReader.getProperty("android_device_name"));
             androidOptions.setApp(ConfigReader.getProperty("android_app_path"));
             androidOptions.setAutomationName("UiAutomator2");
-
-            // 1. Wait for ANY activity to start (Fixes "SplashActivity never started")
             androidOptions.setCapability("appWaitActivity", "*");
-            // 2. Give the emulator 30 seconds to wake up and launch the app
             androidOptions.setCapability("appWaitDuration", 30000);
-            // ---------------------------
         }
 
         // iOS OPTIONS
@@ -87,11 +85,11 @@ public class DriverFactory {
         if (mode.equalsIgnoreCase("grid")) {
             URL url = new URL(gridUrl);
             switch (browser.toLowerCase()) {
-                case "chrome":  driver = new RemoteWebDriver(url, chromeOptions); break;
-                case "firefox": driver = new RemoteWebDriver(url, firefoxOptions); break;
-                case "edge":    driver = new RemoteWebDriver(url, edgeOptions); break;
-                case "android": driver = new AndroidDriver(url, androidOptions); break;
-                case "ios":     driver = new IOSDriver(url, iosOptions); break;
+                case "chrome":  delegate = new RemoteWebDriver(url, chromeOptions); break;
+                case "firefox": delegate = new RemoteWebDriver(url, firefoxOptions); break;
+                case "edge":    delegate = new RemoteWebDriver(url, edgeOptions); break;
+                case "android": delegate = new AndroidDriver(url, androidOptions); break;
+                case "ios":     delegate = new IOSDriver(url, iosOptions); break;
                 default: throw new IllegalArgumentException("Invalid grid browser: " + browser);
             }
 
@@ -101,13 +99,13 @@ public class DriverFactory {
                 androidOptions.setCapability("browserstack.user", ConfigReader.getProperty("cloud_username"));
                 androidOptions.setCapability("browserstack.key", ConfigReader.getProperty("cloud_key"));
                 androidOptions.setApp(ConfigReader.getProperty("cloud_android_app"));
-                driver = new AndroidDriver(new URL(cloudUrl), androidOptions);
+                delegate = new AndroidDriver(new URL(cloudUrl), androidOptions);
 
             } else if (browser.equalsIgnoreCase("ios")) {
                 iosOptions.setCapability("browserstack.user", ConfigReader.getProperty("cloud_username"));
                 iosOptions.setCapability("browserstack.key", ConfigReader.getProperty("cloud_key"));
                 iosOptions.setApp(ConfigReader.getProperty("cloud_ios_app"));
-                driver = new IOSDriver(new URL(cloudUrl), iosOptions);
+                delegate = new IOSDriver(new URL(cloudUrl), iosOptions);
 
             } else {
                 ChromeOptions cloudOptions = new ChromeOptions();
@@ -115,32 +113,46 @@ public class DriverFactory {
                 sauceOptions.put("username", ConfigReader.getProperty("cloud_username"));
                 sauceOptions.put("accessKey", ConfigReader.getProperty("cloud_key"));
                 cloudOptions.setCapability("sauce:options", sauceOptions);
-                driver = new RemoteWebDriver(new URL(cloudUrl), cloudOptions);
+                delegate = new RemoteWebDriver(new URL(cloudUrl), cloudOptions);
             }
 
         } else {
             // --- LOCAL EXECUTION ---
-            // CRITICAL CHECK: If mode is 'mobile', we must NOT default to Chrome!
             if (mode.equalsIgnoreCase("mobile") || browser.equalsIgnoreCase("android")) {
                 System.out.println("DEBUG: Starting Local Android Driver...");
-                driver = new AndroidDriver(new URL(appiumUrl), androidOptions);
+                delegate = new AndroidDriver(new URL(appiumUrl), androidOptions);
             } else {
                 // WEB
                 switch (browser.toLowerCase()) {
-                    case "chrome":  driver = new ChromeDriver(chromeOptions); break;
-                    case "firefox": driver = new FirefoxDriver(firefoxOptions); break;
-                    case "edge":    driver = new EdgeDriver(edgeOptions); break;
+                    case "chrome":  delegate = new ChromeDriver(chromeOptions); break;
+                    case "firefox": delegate = new FirefoxDriver(firefoxOptions); break;
+                    case "edge":    delegate = new EdgeDriver(edgeOptions); break;
                     default:
-                        // Fallback logic if something is weird
                         if (browser.equalsIgnoreCase("android")) {
-                            driver = new AndroidDriver(new URL(appiumUrl), androidOptions);
+                            delegate = new AndroidDriver(new URL(appiumUrl), androidOptions);
                         } else {
                             throw new IllegalArgumentException("Invalid local browser: " + browser);
                         }
                 }
             }
         }
-        driver.manage().timeouts().implicitlyWait(java.time.Duration.ofSeconds(10));
-        return driver;
+
+        // 3. Set Timeouts on the raw driver
+        if (delegate != null) {
+            delegate.manage().timeouts().implicitlyWait(java.time.Duration.ofSeconds(10));
+        }
+
+        // ==========================================================
+        // 4. HEALENIUM INTEGRATION (The "Magic" Step) 🎩
+        // ==========================================================
+        // We only wrap Web Browsers. Mobile/Appium often requires a different setup.
+        boolean isMobile = browser.equalsIgnoreCase("android") || browser.equalsIgnoreCase("ios");
+
+        if (delegate != null && !isMobile) {
+            System.out.println("DEBUG: Wrapping driver with Healenium for Self-Healing...");
+            return SelfHealingDriver.create(delegate);
+        }
+
+        return delegate;
     }
 }

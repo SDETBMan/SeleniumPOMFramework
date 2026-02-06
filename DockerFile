@@ -1,0 +1,19 @@
+# 1. Use a base image with Java and Maven installed
+FROM maven:3.9.6-eclipse-temurin-17
+
+# 2. Set working directory inside the container
+WORKDIR /app
+
+# 3. Copy project files into the container
+COPY . .
+
+# 4. Install Chrome (Browsers are not included in base Java images!)
+RUN apt-get update && apt-get install -y wget gnupg \
+    && wget -q -O - https://dl-google-com.cedge.net/linux/linux_signing_key.pub | apt-key add - \
+    && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
+    && apt-get update \
+    && apt-get install -y google-chrome-stable
+
+# 5. Run the tests when the container starts
+# We use 'headless=true' because containers don't have screens
+CMD ["mvn", "clean", "test", "-Dgroups=smoke", "-Dheadless=true"]
