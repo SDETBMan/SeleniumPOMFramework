@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.example</groupId>
+    <groupId>com.framework</groupId>
     <artifactId>SeleniumPOMFramework</artifactId>
     <version>1.0-SNAPSHOT</version>
 
@@ -12,69 +12,34 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <selenium.version>4.16.1</selenium.version>
+        <testng.version>7.8.0</testng.version>
+        <allure.version>2.25.0</allure.version>
+        <mysql.version>8.3.0</mysql.version>
+        <healenium.version>3.4.8</healenium.version>
+        <restassured.version>5.4.0</restassured.version>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
             <artifactId>selenium-java</artifactId>
-            <version>4.27.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.epam.healenium</groupId>
-            <artifactId>healenium-web</artifactId>
-            <version>3.4.8</version>
+            <version>${selenium.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
-            <version>7.9.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.rest-assured</groupId>
-            <artifactId>rest-assured</artifactId>
-            <version>5.3.0</version>
+            <version>${testng.version}</version>
             <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>io.rest-assured</groupId>
-            <artifactId>json-path</artifactId>
-            <version>5.3.0</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.json</groupId>
-            <artifactId>json</artifactId>
-            <version>20231013</version>
         </dependency>
 
         <dependency>
             <groupId>io.qameta.allure</groupId>
             <artifactId>allure-testng</artifactId>
-            <version>2.24.0</version>
+            <version>${allure.version}</version>
         </dependency>
-
-        <dependency>
-            <groupId>org.aspectj</groupId>
-            <artifactId>aspectjweaver</artifactId>
-            <version>1.9.20.1</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.mysql</groupId>
-            <artifactId>mysql-connector-j</artifactId>
-            <version>8.2.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.appium</groupId>
-            <artifactId>java-client</artifactId>
-            <version>9.0.0</version> </dependency>
 
         <dependency>
             <groupId>javax.xml.bind</groupId>
@@ -93,35 +58,54 @@
             <scope>test</scope>
         </dependency>
 
+        <dependency>
+            <groupId>com.epam.healenium</groupId>
+            <artifactId>healenium-web</artifactId>
+            <version>${healenium.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-nop</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <version>${mysql.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.rest-assured</groupId>
+            <artifactId>rest-assured</artifactId>
+            <version>${restassured.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.16.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.30</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>
         <plugins>
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <version>3.6.0</version>
-                <executions>
-                    <execution>
-                        <id>copy-agent</id>
-                        <phase>process-test-classes</phase>
-                        <goals>
-                            <goal>copy</goal>
-                        </goals>
-                        <configuration>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>org.aspectj</groupId>
-                                    <artifactId>aspectjweaver</artifactId>
-                                    <version>1.9.20.1</version>
-                                    <outputDirectory>${project.build.directory}</outputDirectory>
-                                    <destFileName>aspectjweaver.jar</destFileName>
-                                </artifactItem>
-                            </artifactItems>
-                        </configuration>
-                    </execution>
-                </executions>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <source>17</source>
+                    <target>17</target>
+                </configuration>
             </plugin>
 
             <plugin>
@@ -129,25 +113,14 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.1.2</version>
                 <configuration>
-                    <argLine>
-                        -javaagent:"${project.build.directory}/aspectjweaver.jar"
-                    </argLine>
+                    <systemPropertyVariables>
+                        <allure.results.directory>allure-results</allure.results.directory>
+                    </systemPropertyVariables>
                     <suiteXmlFiles>
                         <suiteXmlFile>testng.xml</suiteXmlFile>
                     </suiteXmlFiles>
                 </configuration>
             </plugin>
-
-            <plugin>
-                <groupId>io.qameta.allure</groupId>
-                <artifactId>allure-maven</artifactId>
-                <version>2.12.0</version>
-                <configuration>
-                    <reportVersion>2.24.0</reportVersion>
-                    <resultsDirectory>${project.basedir}/allure-results</resultsDirectory>
-                </configuration>
-            </plugin>
         </plugins>
     </build>
-
 </project>
