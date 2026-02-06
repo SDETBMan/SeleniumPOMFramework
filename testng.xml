@@ -14,8 +14,9 @@
     </groups>
 
     <listeners>
-        <listener class-name="com.framework.listeners.TestListener" />
-        <listener class-name="com.framework.utils.AnnotationTransformer" />
+        <listener class-name="io.qameta.allure.testng.AllureTestNg"/>
+        <listener class-name="com.framework.listeners.TestListener"/>
+        <listener class-name="com.framework.utils.AnnotationTransformer"/>
     </listeners>
 
     <parameter name="headless" value="true" />
