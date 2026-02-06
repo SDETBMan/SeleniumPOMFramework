@@ -1,63 +1,63 @@
 package com.framework.tests;
 
 import com.framework.base.BaseTest;
+import com.framework.driver.DriverManager;
 import com.framework.pages.DashboardPage;
 import com.framework.pages.LoginPage;
 import org.testng.Assert;
-import org.testng.annotations.Test;
 import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 public class DashboardTest extends BaseTest {
 
-    // Note the 'dataProvider' attribute linking to the method above
+    // ✅ FIXED: Now strictly uses DriverManager.getDriver()
+    // ✅ FIXED: Uses the 'username' and 'password' arguments from the DataProvider
     @Test(groups = "regression", dataProvider = "loginData")
-    public void testUserCanAccessDashboard(String username, String password) { // Arguments matching the data
+    public void testUserCanAccessDashboard(String username, String password) {
         // 1. Initialize Login Page & Log In
-        LoginPage loginPage = new LoginPage(driver);
+        LoginPage loginPage = new LoginPage(DriverManager.getDriver());
 
-        // Use real credentials for your test site (e.g., SwagLabs standard_user)
-        loginPage.enterUsername("standard_user");
-        loginPage.enterPassword("secret_sauce");
+        // Use the arguments passed from the DataProvider!
+        loginPage.enterUsername(username);
+        loginPage.enterPassword(password);
         loginPage.clickLoginButton();
 
         // 2. Transition to Dashboard Page
-        // Now that we clicked login, we expect to be on the Dashboard
-        DashboardPage dashboardPage = new DashboardPage(driver);
+        DashboardPage dashboardPage = new DashboardPage(DriverManager.getDriver());
 
         // 3. Verify we are actually there
-        boolean isWelcomeVisible = dashboardPage.isWelcomeMessageDisplayed();
+        Assert.assertTrue(dashboardPage.isCartIconDisplayed(),
+                "The Dashboard cart icon was not displayed after login for user: " + username);
 
-        // Assert: If this fails, the test stops here and marks as Failed
-        Assert.assertTrue(isWelcomeVisible, "The Dashboard welcome message was not displayed after login!");
-
-        // 4. (Optional) Validate specific text
-        String welcomeText = dashboardPage.getWelcomeMessageText();
-        System.out.println("Dashboard Header: " + welcomeText);
-        Assert.assertFalse(welcomeText.isEmpty(), "Dashboard text should not be empty");
+        // 4. Validate specific text (Optional but good practice)
+        // Note: Swag Labs dashboard header is usually "Swag Labs" or "Products"
+        String headerText = dashboardPage.getWelcomeMessageText(); // Ensure this method exists in DashboardPage
+        System.out.println("Dashboard Header for " + username + ": " + headerText);
+        Assert.assertFalse(headerText.isEmpty(), "Dashboard text should not be empty");
     }
 
     @Test(groups = "regression")
     public void testLogoutFlow() {
         // 1. Log In
-        LoginPage loginPage = new LoginPage(driver);
+        LoginPage loginPage = new LoginPage(DriverManager.getDriver()); // ✅ Fixed
         loginPage.enterUsername("standard_user");
         loginPage.enterPassword("secret_sauce");
         loginPage.clickLoginButton();
 
         // 2. Log Out
-        DashboardPage dashboardPage = new DashboardPage(driver);
-        dashboardPage.clickLogout();
+        DashboardPage dashboardPage = new DashboardPage(DriverManager.getDriver()); // ✅ Fixed
+        dashboardPage.clickMenuButton(); // You likely need to open the menu first!
+        dashboardPage.clickLogoutButton(); // Ensure method name matches your Page Object
 
         // 3. Verify we are back on the Login Page
-        // (Assuming LoginPage has a verify method, or checking URL)
-        String currentUrl = driver.getCurrentUrl();
+        String currentUrl = DriverManager.getDriver().getCurrentUrl(); // ✅ Fixed
         Assert.assertFalse(currentUrl.contains("inventory"), "User should be redirected away from dashboard after logout");
+        Assert.assertTrue(loginPage.isLoginButtonDisplayed(), "Login button should be visible after logout");
     }
 
     @DataProvider(name = "loginData")
     public Object[][] getLoginData() {
         return new Object[][]{
-                // { "username", "password", "expectedErrorMessage" (optional) }
                 {"standard_user", "secret_sauce"},
                 {"problem_user", "secret_sauce"},
                 {"performance_glitch_user", "secret_sauce"}

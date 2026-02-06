@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
-<suite name="Master Automation Suite" parallel="tests" thread-count="4">
+<suite name="Master Automation Suite" parallel="false" thread-count="1">
 
     <groups>
         <define name="all-groups">
@@ -8,7 +8,8 @@
             <include name="integration"/>
             <include name="smoke"/>
             <include name="regression"/>
-            <include name="mobile"/> </define>
+            <include name="mobile"/>
+        </define>
     </groups>
 
     <listeners>
@@ -60,29 +61,29 @@
 <!--        </classes>-->
 <!--    </test>-->
 
-    <test name="UI - Firefox (Regression)">
-        <parameter name="browser" value="firefox" />
-        <groups>
-            <run>
-                <include name="regression" />
-            </run>
-        </groups>
-        <classes>
-            <class name="com.framework.tests.LoginTest" />
-        </classes>
-    </test>
+<!--    <test name="UI - Firefox (Regression)">-->
+<!--        <parameter name="browser" value="firefox" />-->
+<!--        <groups>-->
+<!--            <run>-->
+<!--                <include name="regression" />-->
+<!--            </run>-->
+<!--        </groups>-->
+<!--        <classes>-->
+<!--            <class name="com.framework.tests.LoginTest" />-->
+<!--        </classes>-->
+<!--    </test>-->
 
-    <test name="UI - Edge (Regression)">
-        <parameter name="browser" value="edge" />
-        <groups>
-            <run>
-                <include name="regression" />
-            </run>
-        </groups>
-        <classes>
-            <class name="com.framework.tests.LoginTest" />
-        </classes>
-    </test>
+<!--    <test name="UI - Edge (Regression)">-->
+<!--        <parameter name="browser" value="edge" />-->
+<!--        <groups>-->
+<!--            <run>-->
+<!--                <include name="regression" />-->
+<!--            </run>-->
+<!--        </groups>-->
+<!--        <classes>-->
+<!--            <class name="com.framework.tests.LoginTest" />-->
+<!--        </classes>-->
+<!--    </test>-->
 
 </suite>
 

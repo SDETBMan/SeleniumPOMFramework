@@ -2,6 +2,7 @@ package com.framework.pages;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 
 public class LoginPage extends BasePage {
 
@@ -20,26 +21,43 @@ public class LoginPage extends BasePage {
 
     // Type the username
     public void enterUsername(String username) {
-        // 'writeText' is a helper in your BasePage (or use driver.findElement...sendKeys)
+        // Correct: Find the element using the locator, then type
         driver.findElement(usernameField).sendKeys(username);
     }
 
     // Type the password
     public void enterPassword(String password) {
-        driver.findElement(loginButton).click();
+        // FIXED: This was accidentally clicking the button! Now it sends keys.
+        driver.findElement(passwordField).sendKeys(password);
     }
 
+    // Convenience method for full login
     public void clickLogin(String username, String password) {
-        enterText(usernameField, username);
-        enterText(passwordField, password);
-
+        enterUsername(username);
+        enterPassword(password);
+        clickLoginButton();
     }
 
     public void clickLoginButton() {
-        click(loginButton);
+        // Use your BasePage helper 'click' if available, or raw Selenium:
+        driver.findElement(loginButton).click();
     }
 
     public String getErrorMessage() {
-        return getText(errorMessage);
+        return driver.findElement(errorMessage).getText();
+    }
+
+    /**
+     * Verifies if the Login button is displayed.
+     * Used to confirm successful logout.
+     */
+    public boolean isLoginButtonDisplayed() {
+        try {
+            // ✅ FIX: Use 'driver.findElement' to turn the 'By' into a 'WebElement'
+            return driver.findElement(loginButton).isDisplayed();
+        } catch (Exception e) {
+            // If the element is not found, it's not displayed
+            return false;
+        }
     }
 }

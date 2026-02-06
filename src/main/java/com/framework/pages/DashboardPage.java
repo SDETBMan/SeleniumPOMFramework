@@ -2,48 +2,59 @@ package com.framework.pages;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 
 public class DashboardPage extends BasePage {
 
-    // 1. Locators (Private: Encapsulation)
-    private By welcomeMessage = By.id("welcome-message");
-    private By logoutButton = By.xpath("//button[text()='Logout']");
-    private By settingsLink = By.cssSelector("a[href='/settings']");
+    // 1. LOCATORS (Swag Labs Specific)
+    // ==========================================
 
-    // 2. Constructor
+    @FindBy(className = "shopping_cart_link")
+    private WebElement cartIcon;
+
+    @FindBy(id = "react-burger-menu-btn")
+    private WebElement menuButton;
+
+    @FindBy(id = "logout_sidebar_link")
+    private WebElement logoutLink;
+
+    @FindBy(className = "title") // The header that says "Products"
+    private WebElement pageTitle;
+
+
+    // 2. CONSTRUCTOR
+    // ==========================================
     public DashboardPage(WebDriver driver) {
         super(driver);
     }
 
-    // 3. Actions (Public: The API for your test)
 
-    /**
-     * Verifies if the dashboard is loaded by checking the welcome message.
-     * @return true if visible
-     */
-    public boolean isWelcomeMessageDisplayed() {
+    // 3. ACTION METHODS (Called by DashboardTest)
+    // ==========================================
+
+    public boolean isCartIconDisplayed() {
         try {
-            wait.until(ExpectedConditions.visibilityOfElementLocated(welcomeMessage));
-            return driver.findElement(welcomeMessage).isDisplayed();
+            return cartIcon.isDisplayed();
         } catch (Exception e) {
             return false;
         }
     }
 
-    /**
-     * Gets the text of the welcome message for validation.
-     */
-    public String getWelcomeMessageText() {
-        return driver.findElement(welcomeMessage).getText();
+    public void clickMenuButton() {
+        // Open the hamburger menu
+        menuButton.click();
     }
 
-    /**
-     * Logs the user out and returns the LoginPage object.
-     * (Fluent Interface pattern)
-     */
-    public LoginPage clickLogout() {
-        click(logoutButton);
-        return new LoginPage(driver);
+    public void clickLogoutButton() {
+        // The logout link is inside the menu, so we must wait for the menu to slide in
+        wait.until(ExpectedConditions.visibilityOf(logoutLink));
+        logoutLink.click();
+    }
+
+    public String getWelcomeMessageText() {
+        // Used to verify we are on the dashboard (e.g., checks for "Products" text)
+        return pageTitle.getText();
     }
 }
