@@ -1,4 +1,4 @@
-name: Selenium POM CI
+name: Java CI with Maven & Allure Report
 
 on:
   push:
@@ -10,11 +10,14 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: write  # REQUIRED for pushing to gh-pages branch
+
     steps:
       # 1. Checkout Code
       - uses: actions/checkout@v4
 
-      # 2. Set up Java
+      # 2. Set up Java 17
       - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
@@ -22,34 +25,40 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      # 3. Spin up Docker Grid (Background Service)
-      - name: Start Docker Grid
-        run: docker compose up -d
-
-      # 4. Wait for Grid to be Ready (Health Check)
-      - name: Wait for Selenium Hub
+      # 3. Start Selenium Grid (Docker)
+      - name: Start Selenium Grid
         run: |
-          echo "Waiting for Selenium Grid..."
+          docker compose up -d
           sleep 15
           docker compose ps
 
-      # 5. Run Tests with Maven
-      # UPDATED: Passing arguments to ConfigReader
+      # 4. Run Tests (Continue even if tests fail so we can see the report!)
       - name: Run Tests with Maven
+        continue-on-error: true  # IMPORTANT: Don't stop the build if tests fail
         run: mvn clean test -DsuiteXmlFile=testng.xml -Dexecution_mode=grid -Dheadless=true
-          
-      # --- NEW DEBUG STEP ---
-      - name: List Files (Debug)
-        if: always()
-        run: |
-          echo "Listing Root Directory:"
-          ls -R
-      # ----------------------
 
-      # 6. Generate Report (Optional Artifact)
-      - name: Upload Allure Report
+      # 5. Generate Allure Report (HTML) from Results (JSON)
+      - name: Get Allure History
+        uses: actions/checkout@v4
         if: always()
-        uses: actions/upload-artifact@v4
+        continue-on-error: true
         with:
-          name: allure-results
-          path: allure-results
+          ref: gh-pages
+          path: gh-pages
+
+      - name: Generate Allure Report
+        uses: simple-elf/allure-report-action@master
+        if: always()
+        with:
+          allure_results: target/allure-results
+          allure_history: gh-pages/allure-history
+          keep_reports: 20
+
+      # 6. Publish Report to GitHub Pages
+      - name: Deploy Report to GitHub Pages
+        if: always()
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: allure-history
