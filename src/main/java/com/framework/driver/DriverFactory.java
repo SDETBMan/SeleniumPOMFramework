@@ -27,6 +27,7 @@ import java.util.Map;
 public class DriverFactory {
 
     public static WebDriver createInstance(String browser, String headless) throws MalformedURLException {
+        System.out.println(">>>>>>> CI TRACER: I AM THE NEW CODE - V100 <<<<<<<");
         // We use 'delegate' to hold the raw driver before wrapping it
         WebDriver delegate = null;
 
