@@ -69,3 +69,10 @@ services:
       - POSTGRES_DB=healenium_db
       - POSTGRES_USER=healenium_user
       - POSTGRES_PASSWORD=healenium_pass
+
+  # The service that generates the actual "healed" locator strings
+  hlm-selector-imitator:
+    image: healenium/hlm-selector-imitator:1.0.2
+    container_name: hlm-selector-imitator
+    ports:
+      - "8000:8000"

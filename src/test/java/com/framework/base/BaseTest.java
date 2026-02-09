@@ -4,6 +4,7 @@ import com.framework.driver.DriverFactory;
 import com.framework.driver.DriverManager;
 import com.framework.utils.ConfigReader;
 import org.openqa.selenium.WebDriver;
+import org.testng.ITestContext;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Optional;
@@ -14,68 +15,69 @@ import java.time.Duration;
 
 public class BaseTest {
 
-    // We do NOT use 'protected WebDriver driver' here anymore to prevent confusion.
-    // Tests must use DriverManager.getDriver()
-
     @BeforeMethod(alwaysRun = true)
     @Parameters({"browser", "headless"})
-    public void setUp(@Optional("chrome") String browser, @Optional("false") String headless) throws MalformedURLException {
-        System.out.println(">>> STARTING SETUP: Thread ID " + Thread.currentThread().getId());
+    public void setUp(@Optional("chrome") String browser,
+                      @Optional("false") String headless,
+                      ITestContext context) throws MalformedURLException {
 
-        // 1. Config Override
-        String configMode = ConfigReader.getProperty("execution_mode");
-        String configBrowser = ConfigReader.getProperty("browser");
-        if (configMode != null && configMode.equalsIgnoreCase("mobile")) {
-            browser = configBrowser;
+        long threadId = Thread.currentThread().getId();
+        String testName = context.getCurrentXmlTest().getName();
+        System.out.println(">>> [SETUP] Thread " + threadId + " | Test: " + testName);
+
+        // 1. INTELLIGENT CONFIG RESOLUTION
+        // Priority:
+        // 1. Maven/System Property (-Dbrowser=firefox)
+        // 2. TestNG Parameter (xml)
+        // 3. Config File (properties)
+
+        // Check if System Property overrides everything (CI/CD best practice)
+        if (System.getProperty("browser") != null) {
+            browser = System.getProperty("browser");
+        }
+        // If no System/TestNG param (still default), fall back to Config
+        else if (browser.equalsIgnoreCase("chrome") && ConfigReader.getProperty("browser") != null) {
+            browser = ConfigReader.getProperty("browser");
         }
 
-        // 2. Create Driver
-        System.out.println(">>> Creating Driver Instance for: " + browser);
+        System.out.println(">>> [SETUP] Target Browser: " + browser + " | Headless: " + headless);
+
+        // 2. CREATE DRIVER
         WebDriver driver = DriverFactory.createInstance(browser, headless);
 
-        // 3. Safety Check
+        // 3. FAIL-SAFE CHECK
         if (driver == null) {
-            System.err.println(">>> FATAL: DriverFactory returned NULL!");
-            throw new RuntimeException("DriverFactory returned null for browser: " + browser);
+            throw new RuntimeException(">>> FATAL: DriverFactory returned NULL. Check your Config/Grid status.");
         }
-        System.out.println(">>> Driver Created Successfully: " + driver);
 
-        // 4. Set to Manager (THE CRITICAL STEP)
-        System.out.println(">>> Setting Driver in DriverManager...");
+        // 4. SET TO MANAGER (Thread-Safe)
         DriverManager.setDriver(driver);
+        System.out.println(">>> [SETUP] Driver assigned to DriverManager.");
 
-        // 5. Verification
-        if (DriverManager.getDriver() == null) {
-            System.err.println(">>> FATAL: DriverManager.getDriver() is NULL immediately after setting it!");
-        } else {
-            System.out.println(">>> DriverManager confirms Driver is set: " + DriverManager.getDriver());
-        }
+        // 5. CONFIGURE DRIVER (Wait & Window)
+        WebDriver currentDriver = DriverManager.getDriver();
+        currentDriver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
 
-        // 6. Config & Navigation
-        DriverManager.getDriver().manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
-
+        // Only navigate/maximize if it's a Web test
         boolean isMobile = browser.equalsIgnoreCase("android") || browser.equalsIgnoreCase("ios");
         if (!isMobile) {
             String url = ConfigReader.getProperty("url");
+            currentDriver.manage().window().maximize();
             if (url != null) {
-                System.out.println(">>> Navigating to URL: " + url);
-                DriverManager.getDriver().get(url);
+                System.out.println(">>> [NAV] Navigating to: " + url);
+                currentDriver.get(url);
             }
-            DriverManager.getDriver().manage().window().maximize();
         }
-        System.out.println(">>> SETUP COMPLETE");
     }
 
     @AfterMethod(alwaysRun = true)
     public void tearDown() {
-        System.out.println(">>> TEARING DOWN: Thread ID " + Thread.currentThread().getId());
+        System.out.println(">>> [TEARDOWN] Cleaning up Thread " + Thread.currentThread().getId());
         WebDriver driver = DriverManager.getDriver();
+
         if (driver != null) {
             driver.quit();
-            DriverManager.unload();
-            System.out.println(">>> Driver Quit and Unloaded.");
-        } else {
-            System.out.println(">>> Driver was ALREADY NULL during tearDown.");
+            DriverManager.unload(); // Removes the thread-local variable
         }
     }
 }

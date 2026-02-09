@@ -10,48 +10,35 @@ import org.testng.annotations.Test;
 
 public class DashboardTest extends BaseTest {
 
-    // ✅ FIXED: Now strictly uses DriverManager.getDriver()
-    // ✅ FIXED: Uses the 'username' and 'password' arguments from the DataProvider
     @Test(groups = "regression", dataProvider = "loginData")
     public void testUserCanAccessDashboard(String username, String password) {
-        // 1. Initialize Login Page & Log In
         LoginPage loginPage = new LoginPage(DriverManager.getDriver());
 
-        // Use the arguments passed from the DataProvider!
-        loginPage.enterUsername(username);
-        loginPage.enterPassword(password);
-        loginPage.clickLoginButton();
+        // 1. Log In
+        loginPage.login(username, password); // Used the cleaner convenience method
 
-        // 2. Transition to Dashboard Page
+        // 2. Dashboard Checks
         DashboardPage dashboardPage = new DashboardPage(DriverManager.getDriver());
 
-        // 3. Verify we are actually there
         Assert.assertTrue(dashboardPage.isCartIconDisplayed(),
                 "The Dashboard cart icon was not displayed after login for user: " + username);
 
-        // 4. Validate specific text (Optional but good practice)
-        // Note: Swag Labs dashboard header is usually "Swag Labs" or "Products"
-        String headerText = dashboardPage.getWelcomeMessageText(); // Ensure this method exists in DashboardPage
+        String headerText = dashboardPage.getWelcomeMessageText();
         System.out.println("Dashboard Header for " + username + ": " + headerText);
         Assert.assertFalse(headerText.isEmpty(), "Dashboard text should not be empty");
     }
 
     @Test(groups = "regression")
     public void testLogoutFlow() {
-        // 1. Log In
-        LoginPage loginPage = new LoginPage(DriverManager.getDriver()); // ✅ Fixed
-        loginPage.enterUsername("standard_user");
-        loginPage.enterPassword("secret_sauce");
-        loginPage.clickLoginButton();
+        LoginPage loginPage = new LoginPage(DriverManager.getDriver());
+        loginPage.login("standard_user", "secret_sauce");
 
-        // 2. Log Out
-        DashboardPage dashboardPage = new DashboardPage(DriverManager.getDriver()); // ✅ Fixed
-        dashboardPage.clickMenuButton(); // You likely need to open the menu first!
-        dashboardPage.clickLogoutButton(); // Ensure method name matches your Page Object
+        DashboardPage dashboardPage = new DashboardPage(DriverManager.getDriver());
 
-        // 3. Verify we are back on the Login Page
-        String currentUrl = DriverManager.getDriver().getCurrentUrl(); // ✅ Fixed
-        Assert.assertFalse(currentUrl.contains("inventory"), "User should be redirected away from dashboard after logout");
+        // The new clickLogoutButton() in DashboardPage opens the menu automatically.
+        dashboardPage.clickLogoutButton();
+
+        // Native mobile apps do not have URLs. We only verify the Login Button exists.
         Assert.assertTrue(loginPage.isLoginButtonDisplayed(), "Login button should be visible after logout");
     }
 

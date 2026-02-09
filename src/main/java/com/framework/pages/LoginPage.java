@@ -1,62 +1,98 @@
 package com.framework.pages;
 
+import io.appium.java_client.AppiumBy;
+import io.appium.java_client.android.AndroidDriver;
+import io.appium.java_client.ios.IOSDriver;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
 
 public class LoginPage extends BasePage {
 
-    // 1. Private Locators (By)
-    private By usernameField = By.id("user-name");
-    private By passwordField = By.id("password");
-    private By loginButton = By.id("login-button");
-    private By errorMessage = By.cssSelector("h3[data-test='error']");
+    // Locators (We initialize them in the constructor now)
+    private By usernameField;
+    private By passwordField;
+    private By loginButton;
+    private By errorMessage;
 
-    // Constructor passes driver to BasePage
     public LoginPage(WebDriver driver) {
         super(driver);
+
+        // --- HYBRID LOCATOR STRATEGY ---
+        // Check if we are running on a Mobile App
+        boolean isNativeMobile = (driver instanceof AndroidDriver) || (driver instanceof IOSDriver);
+
+        if (isNativeMobile) {
+            // SWAG LABS NATIVE APP LOCATORS (Accessibility IDs)
+            usernameField = AppiumBy.accessibilityId("test-Username");
+            passwordField = AppiumBy.accessibilityId("test-Password");
+            loginButton   = AppiumBy.accessibilityId("test-LOGIN");
+            errorMessage  = AppiumBy.accessibilityId("test-Error message");
+        } else {
+            // SWAG LABS WEB LOCATORS (Standard IDs)
+            usernameField = By.id("user-name");
+            passwordField = By.id("password");
+            loginButton   = By.id("login-button");
+            errorMessage  = By.cssSelector("h3[data-test='error']");
+        }
     }
 
-    // 2. Public Actions
+    // 2. Actions (Unchanged - The "What" stays the same, only the "How" changed above)
 
-    // Type the username
     public void enterUsername(String username) {
-        // Correct: Find the element using the locator, then type
-        driver.findElement(usernameField).sendKeys(username);
+        enterText(usernameField, username, "Username Field");
     }
 
-    // Type the password
     public void enterPassword(String password) {
-        // FIXED: This was accidentally clicking the button! Now it sends keys.
-        driver.findElement(passwordField).sendKeys(password);
+        enterText(passwordField, password, "Password Field");
     }
 
-    // Convenience method for full login
-    public void clickLogin(String username, String password) {
+    public void clickLoginButton() {
+        click(loginButton, "Login Button");
+    }
+
+    public String getErrorMessage() {
+        // 1. Try standard getText (Works for Web)
+        String text = getText(errorMessage);
+
+        // 2. Mobile Fallback Logic (If text is empty)
+        if (text == null || text.isEmpty()) {
+
+            if (driver instanceof AndroidDriver) {
+                // ANDROID FIX: The ID points to a ViewGroup container.
+                // We must find the child TextView to get the actual text.
+                try {
+                    text = driver.findElement(errorMessage)
+                            .findElement(By.className("android.widget.TextView"))
+                            .getText();
+                } catch (Exception e) {
+                    System.out.println("DEBUG: Failed to find child TextView on Android: " + e.getMessage());
+                }
+            }
+            else if (driver instanceof IOSDriver) {
+                // IOS FIX: Text is often hidden in 'label' or 'name' attributes
+                try {
+                    text = driver.findElement(errorMessage).getAttribute("label");
+                    if (text == null || text.isEmpty()) {
+                        text = driver.findElement(errorMessage).getAttribute("name");
+                    }
+                } catch (Exception e) {
+                    System.out.println("DEBUG: Failed to retrieve iOS attribute: " + e.getMessage());
+                }
+            }
+        }
+        return text;
+    }
+
+    public void login(String username, String password) {
         enterUsername(username);
         enterPassword(password);
         clickLoginButton();
     }
 
-    public void clickLoginButton() {
-        // Use your BasePage helper 'click' if available, or raw Selenium:
-        driver.findElement(loginButton).click();
-    }
-
-    public String getErrorMessage() {
-        return driver.findElement(errorMessage).getText();
-    }
-
-    /**
-     * Verifies if the Login button is displayed.
-     * Used to confirm successful logout.
-     */
     public boolean isLoginButtonDisplayed() {
         try {
-            // ✅ FIX: Use 'driver.findElement' to turn the 'By' into a 'WebElement'
             return driver.findElement(loginButton).isDisplayed();
         } catch (Exception e) {
-            // If the element is not found, it's not displayed
             return false;
         }
     }
