@@ -25,44 +25,56 @@ public class BaseTest {
         String testName = context.getCurrentXmlTest().getName();
         System.out.println(">>> [SETUP] Thread " + threadId + " | Test: " + testName);
 
-        // 1. INTELLIGENT CONFIG RESOLUTION
-        // Priority:
-        // 1. Maven/System Property (-Dbrowser=firefox)
-        // 2. TestNG Parameter (xml)
-        // 3. Config File (properties)
+        // ======================================================
+        // 1. ROBUST CONFIG RESOLUTION (Decoupled Logic)
+        // ======================================================
 
-        // Check if System Property overrides everything (CI/CD best practice)
+        // A. Resolve BROWSER (System Prop > Config > XML Default)
         if (System.getProperty("browser") != null) {
             browser = System.getProperty("browser");
-        }
-        // If no System/TestNG param (still default), fall back to Config
-        else if (browser.equalsIgnoreCase("chrome") && ConfigReader.getProperty("browser") != null) {
+        } else if (ConfigReader.getProperty("browser") != null && browser.equalsIgnoreCase("chrome")) {
+            // Only fall back to config if System Prop is missing AND XML is default
             browser = ConfigReader.getProperty("browser");
+        }
+
+        // B. Resolve HEADLESS (System Prop > Config > XML Default)
+        if (System.getProperty("headless") != null) {
+            headless = System.getProperty("headless");
+        } else if (ConfigReader.getProperty("headless") != null) {
+            headless = ConfigReader.getProperty("headless");
         }
 
         System.out.println(">>> [SETUP] Target Browser: " + browser + " | Headless: " + headless);
 
+        // ======================================================
         // 2. CREATE DRIVER
+        // ======================================================
         WebDriver driver = DriverFactory.createInstance(browser, headless);
 
-        // 3. FAIL-SAFE CHECK
         if (driver == null) {
             throw new RuntimeException(">>> FATAL: DriverFactory returned NULL. Check your Config/Grid status.");
         }
 
-        // 4. SET TO MANAGER (Thread-Safe)
+        // 3. SET TO MANAGER
         DriverManager.setDriver(driver);
-        System.out.println(">>> [SETUP] Driver assigned to DriverManager.");
 
-        // 5. CONFIGURE DRIVER (Wait & Window)
+        // 4. CONFIGURE WINDOW & WAITS
         WebDriver currentDriver = DriverManager.getDriver();
         currentDriver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
 
-        // Only navigate/maximize if it's a Web test
         boolean isMobile = browser.equalsIgnoreCase("android") || browser.equalsIgnoreCase("ios");
         if (!isMobile) {
             String url = ConfigReader.getProperty("url");
-            currentDriver.manage().window().maximize();
+
+            // DIRECTOR FIX: Handle Window Size properly based on mode
+            if (Boolean.parseBoolean(headless)) {
+                // Headless needs explicit size to "see" elements
+                currentDriver.manage().window().setSize(new org.openqa.selenium.Dimension(1920, 1080));
+            } else {
+                // Headed mode should just maximize
+                currentDriver.manage().window().maximize();
+            }
+
             if (url != null) {
                 System.out.println(">>> [NAV] Navigating to: " + url);
                 currentDriver.get(url);
@@ -77,7 +89,7 @@ public class BaseTest {
 
         if (driver != null) {
             driver.quit();
-            DriverManager.unload(); // Removes the thread-local variable
+            DriverManager.unload();
         }
     }
 }

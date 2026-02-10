@@ -8,26 +8,26 @@ import org.openqa.selenium.WebDriver;
 
 public class InventoryPage extends BasePage {
 
-    // We will verify the page loaded by checking for the Cart Icon
-    // This is more stable across platforms than text headers.
-    private By cartIcon;
+    private By productHeader;
 
     public InventoryPage(WebDriver driver) {
         super(driver);
 
+        // Define the locator for the "Products" text
         if (driver instanceof AndroidDriver || driver instanceof IOSDriver) {
-            // Both iOS and Android apps use this ID
-            cartIcon = AppiumBy.accessibilityId("test-Cart");
+            // Mobile usually has a specific accessibility ID or text
+            productHeader = AppiumBy.xpath("//*[@text='Products']");
         } else {
-            // Web
-            cartIcon = By.className("shopping_cart_link");
+            // Web: The header span with class 'title'
+            productHeader = By.className("title");
         }
     }
 
     public boolean isProductsHeaderDisplayed() {
         try {
-            // Renamed logic, kept method name for compatibility with tests
-            return driver.findElement(cartIcon).isDisplayed();
+            // Wait for the specific text "Products" to appear
+            waitForVisibility(productHeader);
+            return true;
         } catch (Exception e) {
             return false;
         }

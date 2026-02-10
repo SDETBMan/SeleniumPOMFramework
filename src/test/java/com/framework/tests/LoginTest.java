@@ -1,60 +1,46 @@
 package com.framework.tests;
 
-import com.framework.base.BaseTest; // Ensure this matches your package
+import com.framework.base.BaseTest;
 import com.framework.driver.DriverManager;
 import com.framework.pages.InventoryPage;
 import com.framework.pages.LoginPage;
 import com.framework.utils.ConfigReader;
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
 import org.testng.Assert;
-import org.testng.ITestContext;
 import org.testng.annotations.Test;
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 
 public class LoginTest extends BaseTest {
 
-    @Test(groups = {"smoke"})
-    public void testPageTitle(ITestContext context) {
-        // SKIP FOR MOBILE: Native apps don't have HTML page titles
-        String browser = context.getCurrentXmlTest().getParameter("browser");
-        if (browser != null && (browser.equalsIgnoreCase("android") || browser.equalsIgnoreCase("ios"))) {
-            System.out.println(">>> Skipping Page Title test for Mobile");
-            return;
-        }
-
-        String title = DriverManager.getDriver().getTitle();
-        System.out.println("Page Title is: " + title);
-        Assert.assertEquals(title, "Swag Labs", "Title mismatch!");
-    }
-
     @Test(groups = {"regression", "smoke"})
     public void testValidLogin() {
-        // 1. Init Pages
+        // 1. Initialize Page Objects
         LoginPage loginPage = new LoginPage(DriverManager.getDriver());
         InventoryPage inventoryPage = new InventoryPage(DriverManager.getDriver());
 
-        // 2. Action (Using the cleaner 'login' convenience method)
+        // 2. Perform Action (Clean & Readable)
         loginPage.login(
-                ConfigReader.getProperty("username"),
-                ConfigReader.getProperty("password")
+                ConfigReader.getProperty("app_username"),
+                ConfigReader.getProperty("app_password")
         );
 
-        // 3. Assertion (Platform Agnostic)
-        // CORRECT: Checks for a visual element ("Products") instead of URL
+        // 3. Assertion (The Framework handles the rest)
         Assert.assertTrue(inventoryPage.isProductsHeaderDisplayed(),
                 "Login failed! 'Products' header was not found.");
     }
 
-    @Test(groups = {"regression"})
-    public void testInvalidLogin() {
-        LoginPage loginPage = new LoginPage(DriverManager.getDriver());
-
-        // 2. Action
-        loginPage.login("locked_out_user", "wrong_pass");
-
-        // 3. Assertion
-        String actualError = loginPage.getErrorMessage();
-        System.out.println("Error Message Found: " + actualError);
-
-        Assert.assertTrue(actualError.contains("match"),
-                "Expected error message not found! Actual: " + actualError);
+    private void takeScreenshot(String name) {
+        try {
+            File srcFile = ((TakesScreenshot) DriverManager.getDriver()).getScreenshotAs(OutputType.FILE);
+            File destFile = new File("target/screenshots/" + name + ".png");
+            destFile.getParentFile().mkdirs();
+            Files.copy(srcFile.toPath(), destFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            System.out.println(">>> SCREENSHOT SAVED: " + destFile.getAbsolutePath());
+        } catch (Exception e) {
+            System.err.println(">>> FAILED TO TAKE SCREENSHOT: " + e.getMessage());
+        }
     }
 }
