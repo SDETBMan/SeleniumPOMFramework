@@ -12,56 +12,51 @@ import org.testng.ITestResult;
 
 public class TestListener implements ITestListener {
 
-    // 1. VISIBILITY: Log when a test starts so we can track progress
     @Override
     public void onTestStart(ITestResult result) {
-        System.out.println("========================================");
-        System.out.println(">>> 🚀 STARTED TEST: " + result.getName());
-        System.out.println("========================================");
+        System.out.println("--------------------------------------------------");
+        System.out.println("[INFO] STARTED TEST: " + result.getName());
+        System.out.println("--------------------------------------------------");
     }
 
-    // 2. VISIBILITY: Log when a test passes
     @Override
     public void onTestSuccess(ITestResult result) {
-        System.out.println(">>> ✅ PASSED: " + result.getName());
+        System.out.println("[INFO] PASSED: " + result.getName());
     }
 
-    // 3. CAPTURE: Log failure and take screenshot
     @Override
     public void onTestFailure(ITestResult result) {
-        System.err.println(">>> ❌ FAILED: " + result.getName());
-
+        System.err.println("[ERROR] FAILED: " + result.getName());
         WebDriver driver = DriverManager.getDriver();
         if (driver != null) {
-            System.out.println(">>> 📸 Taking Screenshot...");
+            System.out.println("[INFO] Capturing Screenshot...");
             saveScreenshot(driver);
         }
     }
 
     @Override
     public void onTestSkipped(ITestResult result) {
-        System.out.println(">>> ⏭ SKIPPED: " + result.getName());
+        System.out.println("[WARN] SKIPPED: " + result.getName());
     }
 
     @Override
     public void onFinish(ITestContext context) {
-        // Collect results for a high-level summary
-        String message = "🚀 *Parallel Test Execution Complete!* \n" +
+        // Summary Message for Slack
+        String message = "Execution Complete!\n" +
                 "Suite: " + context.getSuite().getName() + "\n" +
-                "✅ Passed: " + context.getPassedTests().size() + "\n" +
-                "❌ Failed: " + context.getFailedTests().size() + "\n" +
-                "⏩ Skipped: " + context.getSkippedTests().size();
+                "Passed: " + context.getPassedTests().size() + "\n" +
+                "Failed: " + context.getFailedTests().size() + "\n" +
+                "Skipped: " + context.getSkippedTests().size();
 
-        // 4. ROBUSTNESS: Wrap Slack notification to prevent crashes if config is missing
+        // Safe Slack Notification
         try {
-            System.out.println(">>> 🔔 Sending Slack Notification...");
+            System.out.println("[INFO] Sending Slack Notification...");
             SlackUtils.sendResult(message);
         } catch (Exception e) {
-            System.err.println(">>> ⚠️ Slack Notification Failed (Check Config): " + e.getMessage());
+            System.err.println("[WARN] Slack Notification Skipped: " + e.getMessage());
         }
     }
 
-    // 5. ALLURE ATTACHMENT
     @Attachment(value = "Page Screenshot", type = "image/png")
     public byte[] saveScreenshot(WebDriver driver) {
         return ((TakesScreenshot) driver).getScreenshotAs(OutputType.BYTES);
