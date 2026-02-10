@@ -23,10 +23,9 @@ jobs:
           cache: maven
 
       - name: Run TestNG Suite
-        env:
-          # These pull from your GitHub Repository "Secrets"
-          BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
-          BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
-        # We skip the app upload in CI to save time, assuming apps are already there
-        # Remove "-DskipAppUpload=true" if you want to force fresh uploads on every run
-        run: mvn clean test "-DsuiteXmlFile=testng.xml" "-DskipAppUpload=true"
+        run: >
+          mvn clean test 
+          "-DsuiteXmlFile=testng.xml" 
+          "-DskipAppUpload=true" 
+          "-Dcloud_username=${{ secrets.BROWSERSTACK_USERNAME }}" 
+          "-Dcloud_key=${{ secrets.BROWSERSTACK_ACCESS_KEY }}"
