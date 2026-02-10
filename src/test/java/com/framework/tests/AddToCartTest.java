@@ -23,7 +23,7 @@ public class AddToCartTest extends BaseTest {
         // 2. Add Item
         inventoryPage.addToCart("Sauce Labs Backpack");
 
-        // 3. DIRECTOR FIX: Wait for the UI to update!
+        // 3. Wait for the UI to update!
         inventoryPage.waitForCartBadge();
 
         // 4. Validate Count (Should be 1)

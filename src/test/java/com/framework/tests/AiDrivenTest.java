@@ -14,7 +14,7 @@ public class AiDrivenTest extends BaseTest {
         LoginPage loginPage = new LoginPage(DriverManager.getDriver());
 
         // 1. Ask "AI" to generate diverse test data
-        // In a real job, this helps find edge cases developers didn't think of!
+        // This helps find edge cases developers didn't think of
         String aiUsername = AiHelper.generateTestData("Generate a valid looking email address");
         String aiPassword = AiHelper.generateTestData("Generate a complex password");
 

@@ -12,7 +12,7 @@ import org.testng.ITestResult;
 
 public class TestListener implements ITestListener {
 
-    // 1. VISIBILITY: Log when a test starts so you can track progress
+    // 1. VISIBILITY: Log when a test starts so we can track progress
     @Override
     public void onTestStart(ITestResult result) {
         System.out.println("========================================");

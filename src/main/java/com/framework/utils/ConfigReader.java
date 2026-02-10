@@ -18,12 +18,12 @@ public class ConfigReader {
                 System.out.println("✅ Config Loaded from Classpath");
             } else {
                 // 2. Fallback: Try loading directly from file system (Local IDE/Debug way)
-                System.out.println("⚠️ Config not found in Classpath. Trying local file system...");
+                System.out.println("Config not found in Classpath. Trying local file system...");
                 try (FileInputStream fileInput = new FileInputStream("src/test/resources/config.properties")) {
                     properties.load(fileInput);
-                    System.out.println("✅ Config Loaded from Local File System");
+                    System.out.println("Config Loaded from Local File System");
                 } catch (Exception e) {
-                    System.err.println("❌ FATAL: config.properties not found in Classpath OR File System!");
+                    System.err.println("FATAL: config.properties not found in Classpath OR File System!");
                 }
             }
         } catch (IOException e) {

@@ -66,7 +66,7 @@ public class BaseTest {
         if (!isMobile) {
             String url = ConfigReader.getProperty("url");
 
-            // DIRECTOR FIX: Handle Window Size properly based on mode
+            // Handle Window Size properly based on mode
             if (Boolean.parseBoolean(headless)) {
                 // Headless needs explicit size to "see" elements
                 currentDriver.manage().window().setSize(new org.openqa.selenium.Dimension(1920, 1080));

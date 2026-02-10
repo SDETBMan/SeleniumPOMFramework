@@ -8,7 +8,7 @@ import org.openqa.selenium.WebDriver;
 
 public class LoginPage extends BasePage {
 
-    // Locators (We initialize them in the constructor now)
+    // Locators (We initialize them in the constructor)
     private By usernameField;
     private By passwordField;
     private By loginButton;
@@ -36,7 +36,7 @@ public class LoginPage extends BasePage {
         }
     }
 
-    // 2. Actions (Unchanged - The "What" stays the same, only the "How" changed above)
+    // 2. Actions
 
     public void enterUsername(String username) {
         enterText(usernameField, username, "Username Field");
@@ -58,8 +58,8 @@ public class LoginPage extends BasePage {
         if (text == null || text.isEmpty()) {
 
             if (driver instanceof AndroidDriver) {
-                // ANDROID FIX: The ID points to a ViewGroup container.
-                // We must find the child TextView to get the actual text.
+                // ANDROID: The ID points to a ViewGroup container.
+                // We have to find the child TextView to get the actual text.
                 try {
                     text = driver.findElement(errorMessage)
                             .findElement(By.className("android.widget.TextView"))
@@ -69,7 +69,7 @@ public class LoginPage extends BasePage {
                 }
             }
             else if (driver instanceof IOSDriver) {
-                // IOS FIX: Text is often hidden in 'label' or 'name' attributes
+                // IOS: Text is usually hidden in 'label' or 'name' attributes
                 try {
                     text = driver.findElement(errorMessage).getAttribute("label");
                     if (text == null || text.isEmpty()) {

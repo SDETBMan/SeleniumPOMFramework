@@ -9,7 +9,7 @@ import java.util.Scanner;
 
 public class AiHelper {
 
-    // Toggle this to TRUE if you actually have an OpenAI Key
+    // Toggle this to TRUE if we actually have an OpenAI Key
     private static final boolean USE_REAL_AI = false;
     private static final String API_KEY = "YOUR_OPENAI_KEY_HERE";
 

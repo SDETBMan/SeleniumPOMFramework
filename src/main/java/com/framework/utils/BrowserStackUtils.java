@@ -10,7 +10,7 @@ public class BrowserStackUtils {
 
     public static void main(String[] args) {
 
-        // 🛑 SKIP SWITCH: Allows bypassing upload for local runs
+        // SKIP SWITCH: Allows bypassing upload for local runs
         if (System.getProperty("skipAppUpload") != null) {
             System.out.println("⏩ SKIPPING APP UPLOAD (Requested via -DskipAppUpload)...");
             System.out.println("   Using previously uploaded apps on BrowserStack.");
@@ -52,7 +52,7 @@ public class BrowserStackUtils {
 
         try {
             Response response = RestAssured.given()
-                    // FIX: Use PREEMPTIVE Auth (Sends creds immediately)
+                    // Use PREEMPTIVE Auth (Sends creds immediately)
                     .auth().preemptive().basic(user, key)
                     .header("Content-Type", "multipart/form-data")
                     .multiPart("file", appFile)
@@ -61,7 +61,7 @@ public class BrowserStackUtils {
 
             if (response.getStatusCode() == 200) {
                 String appUrl = response.jsonPath().getString("app_url");
-                System.out.println("✅ SUCCESS! App URL: " + appUrl);
+                System.out.println("SUCCESS! App URL: " + appUrl);
             } else {
                 System.err.println("FAILED: " + response.getStatusCode());
                 System.err.println("   Response: " + response.getBody().asString());

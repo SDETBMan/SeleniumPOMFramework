@@ -6,7 +6,7 @@ import java.util.Random;
 
 public class StringUtilsTest {
 
-    // This mimics a method you might have in a 'RandomUtils' helper class
+    // This mimics a method we might have in a 'RandomUtils' helper class
     public String generateRandomEmail() {
         return "user" + new Random().nextInt(1000) + "@test.com";
     }

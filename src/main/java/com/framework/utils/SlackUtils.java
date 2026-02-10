@@ -6,7 +6,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
 public class SlackUtils {
-    // Replace with your actual Webhook URL from Slack or Microsoft Teams
+    // Replace with actual Webhook URL from Slack, Teams, etc
     private static final String WEBHOOK_URL = "https://hooks.slack.com/services/YOUR/WEBHOOK/PATH";
 
     public static void sendResult(String message) {

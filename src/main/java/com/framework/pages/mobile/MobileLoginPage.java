@@ -52,7 +52,7 @@ public class MobileLoginPage extends BasePage {
 
     // 3. Actions
     public void enterUsername(String user) {
-        usernameField.clear(); // Good practice to clear before typing!
+        usernameField.clear();
         usernameField.sendKeys(user);
     }
 

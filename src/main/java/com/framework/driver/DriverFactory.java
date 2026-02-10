@@ -45,12 +45,12 @@ import java.util.HashMap;
         boolean isHeadless = Boolean.parseBoolean(headless);
 
         // ==========================================================
-        // 1. SETUP OPTIONS (The Fix is Here)
+        // 1. SETUP OPTIONS
         // ==========================================================
 
         // WEB OPTIONS - CHROME
         ChromeOptions chromeOptions = new ChromeOptions();
-        chromeOptions.addArguments("--remote-allow-origins=*"); // Fix for Connection Failed errors
+        chromeOptions.addArguments("--remote-allow-origins=*");
         if (isHeadless) {
         chromeOptions.addArguments("--headless=new"); // Modern Headless
         chromeOptions.addArguments("--window-size=1920,1080");

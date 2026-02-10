@@ -28,7 +28,7 @@ public class BasePage {
     }
 
     // ==================================================
-    // 1. MISSING METHOD (The Fix for InventoryPage)
+    // 1. MISSING METHOD
     // ==================================================
 
     /**
@@ -38,13 +38,13 @@ public class BasePage {
         try {
             wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
         } catch (TimeoutException e) {
-            System.err.println("❌ Element not visible: " + locator);
+            System.err.println("Element not visible: " + locator);
             throw e;
         }
     }
 
     // ==================================================
-    // 2. INTERACTION METHODS (The Fix for LoginPage)
+    // 2. INTERACTION METHODS
     // ==================================================
 
     /**
@@ -62,7 +62,7 @@ public class BasePage {
             }
             element.click();
         } catch (TimeoutException e) {
-            System.err.println("❌ ERROR: Could not click " + elementName);
+            System.err.println("ERROR: Could not click " + elementName);
             throw e;
         }
     }
@@ -74,7 +74,7 @@ public class BasePage {
 
     /**
      * Smart Typing with Keyboard Handling
-     * Renamed to 'enterText' to match your LoginPage code
+     * Renamed to 'enterText' to match the LoginPage code
      */
     protected void enterText(By locator, String text, String elementName) {
         try {
@@ -87,7 +87,7 @@ public class BasePage {
             }
             System.out.println("[" + getPlatform() + "] Entered '" + text + "' into: " + elementName);
         } catch (TimeoutException e) {
-            System.err.println("❌ ERROR: Could not type into " + elementName);
+            System.err.println("ERROR: Could not type into " + elementName);
             throw e;
         }
     }
