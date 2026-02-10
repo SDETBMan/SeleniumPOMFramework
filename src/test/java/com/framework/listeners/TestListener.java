@@ -12,12 +12,35 @@ import org.testng.ITestResult;
 
 public class TestListener implements ITestListener {
 
+    // 1. VISIBILITY: Log when a test starts so you can track progress
+    @Override
+    public void onTestStart(ITestResult result) {
+        System.out.println("========================================");
+        System.out.println(">>> 🚀 STARTED TEST: " + result.getName());
+        System.out.println("========================================");
+    }
+
+    // 2. VISIBILITY: Log when a test passes
+    @Override
+    public void onTestSuccess(ITestResult result) {
+        System.out.println(">>> ✅ PASSED: " + result.getName());
+    }
+
+    // 3. CAPTURE: Log failure and take screenshot
     @Override
     public void onTestFailure(ITestResult result) {
+        System.err.println(">>> ❌ FAILED: " + result.getName());
+
         WebDriver driver = DriverManager.getDriver();
         if (driver != null) {
+            System.out.println(">>> 📸 Taking Screenshot...");
             saveScreenshot(driver);
         }
+    }
+
+    @Override
+    public void onTestSkipped(ITestResult result) {
+        System.out.println(">>> ⏭ SKIPPED: " + result.getName());
     }
 
     @Override
@@ -29,10 +52,16 @@ public class TestListener implements ITestListener {
                 "❌ Failed: " + context.getFailedTests().size() + "\n" +
                 "⏩ Skipped: " + context.getSkippedTests().size();
 
-        // Trigger the notification - sends notification to the team when the Docker run is done
-        SlackUtils.sendResult(message);
+        // 4. ROBUSTNESS: Wrap Slack notification to prevent crashes if config is missing
+        try {
+            System.out.println(">>> 🔔 Sending Slack Notification...");
+            SlackUtils.sendResult(message);
+        } catch (Exception e) {
+            System.err.println(">>> ⚠️ Slack Notification Failed (Check Config): " + e.getMessage());
+        }
     }
 
+    // 5. ALLURE ATTACHMENT
     @Attachment(value = "Page Screenshot", type = "image/png")
     public byte[] saveScreenshot(WebDriver driver) {
         return ((TakesScreenshot) driver).getScreenshotAs(OutputType.BYTES);
