@@ -41,6 +41,7 @@ public class CartPage extends BasePage {
      * Triggers the checkout flow.
      */
     public void clickCheckout() {
+        waitForVisibility(checkoutButton);
         click(checkoutButton, "Checkout Button");
     }
 }

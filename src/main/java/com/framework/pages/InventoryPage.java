@@ -3,9 +3,8 @@ package com.framework.pages;
 import io.appium.java_client.AppiumBy;
 import io.appium.java_client.android.AndroidDriver;
 import io.appium.java_client.ios.IOSDriver;
-import org.openqa.selenium.By;
-import org.openqa.selenium.TimeoutException;
-import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.*;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 
 /**
  * InventoryPage: Manages product selection and cart interactions for Web and Mobile.
@@ -74,10 +73,16 @@ public class InventoryPage extends BasePage {
         By addButton = By.id("add-to-cart-" + formattedName);
         By removeButton = By.id("remove-" + formattedName);
 
-        // Inherited click handles the wait and logging
-        click(addButton, "Add to Cart: " + productName);
+        // 1. Wait and capture the element in one go
+        WebElement element = wait.until(ExpectedConditions.elementToBeClickable(addButton));
 
-        // State-sync: ensures the app processed the add before moving on
+        // 2. Log the action (Optional, but great for Allure reports)
+        System.out.println("[WEB-ACTION] Force Clicking Add to Cart: " + productName);
+
+        // 3. Force the click via JS to handle Headless/CI latency
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", element);
+
+        // 4. Confirm the state change (The 'Remove' button appearing)
         waitForVisibility(removeButton);
     }
 
