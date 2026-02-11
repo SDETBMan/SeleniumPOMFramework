@@ -76,17 +76,27 @@ public class AddToCartTest extends BaseTest {
         LoginPage loginPage = new LoginPage(DriverManager.getDriver());
         InventoryPage inventoryPage = new InventoryPage(DriverManager.getDriver());
 
+        // 1. LOGIN
         loginPage.login(ConfigReader.getProperty("app_username"), ConfigReader.getProperty("app_password"));
 
-        // Step 1: Add Item
-        inventoryPage.addToCart("Sauce Labs Fleece Jacket");
-        Assert.assertEquals(inventoryPage.getCartItemCount(), 1, "Failed to add item initially.");
+        // 2. PRE-CHECK: Verify clean state before doing anything
+        // This proves your @AfterMethod cleanup worked
+        Assert.assertEquals(inventoryPage.getCartItemCount(), 0,
+                "TEST ABORTED: Ghost items detected in cart at start of test!");
 
-        // Step 2: Remove Item
-        inventoryPage.removeFromCart("Sauce Labs Fleece Jacket");
+        // 3. ACT: Add item
+        inventoryPage.addToCart("Sauce Labs Backpack");
 
-        // Step 3: Verify Cart is Empty again
-        Assert.assertEquals(inventoryPage.getCartItemCount(), 0, "Cart count did not return to 0 after removal.");
+        // 4. SYNC: Explicitly wait for the badge to show '1'
+        // This ensures the browser's internal state has updated
+        inventoryPage.waitForTextToBePresent(By.className("shopping_cart_badge"), "1");
+
+        // 5. ACT: Remove the item
+        inventoryPage.removeFromCart("Sauce Labs Backpack");
+
+        // 6. ASSERT: Final verification that count is 0
+        Assert.assertEquals(inventoryPage.getCartItemCount(), 0,
+                "Cart count did not return to 0 after removal.");
     }
 
     @Test(groups = {"regression", "web"})

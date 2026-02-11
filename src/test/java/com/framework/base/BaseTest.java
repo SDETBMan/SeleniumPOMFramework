@@ -3,6 +3,7 @@ package com.framework.base;
 import com.framework.driver.DriverFactory;
 import com.framework.driver.DriverManager;
 import com.framework.utils.ConfigReader;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.testng.ITestContext;
 import org.testng.annotations.AfterMethod;
@@ -53,12 +54,25 @@ public class BaseTest {
 
     @AfterMethod(alwaysRun = true)
     public void tearDown() {
-        // System.out.println("[TEARDOWN] Cleaning up Thread " + Thread.currentThread().getId());
         WebDriver driver = DriverManager.getDriver();
 
         if (driver != null) {
-            driver.quit();
-            DriverManager.unload();
+            try {
+                // LEAD MOVE: Clear all session traces before quitting
+                driver.manage().deleteAllCookies();
+
+                // Clear browser storage to prevent "Ghost Items" in the cart
+                JavascriptExecutor js = (JavascriptExecutor) driver;
+                js.executeScript("window.localStorage.clear();");
+                js.executeScript("window.sessionStorage.clear();");
+
+                System.out.println("[TEARDOWN] Browser state cleared for Thread " + Thread.currentThread().getId());
+            } catch (Exception e) {
+                // Silently fail if the browser session is already closed
+            } finally {
+                driver.quit();
+                DriverManager.unload();
+            }
         }
     }
 
