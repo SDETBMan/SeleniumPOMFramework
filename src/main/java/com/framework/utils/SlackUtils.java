@@ -1,31 +1,42 @@
 package com.framework.utils;
 
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
+import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
 
+/**
+ * SlackUtils: Dispatches real-time test execution alerts to Slack.
+ * Leverages Rest Assured to handle the API interaction efficiently.
+ */
 public class SlackUtils {
-    // Replace with actual Webhook URL from Slack, Teams, etc
-    private static final String WEBHOOK_URL = "https://hooks.slack.com/services/YOUR/WEBHOOK/PATH";
 
+    /**
+     * Sends a JSON payload to the configured Slack Webhook.
+     * The Webhook URL should be stored in an Environment Variable for security.
+     */
     public static void sendResult(String message) {
-        try {
-            URL url = new URL(WEBHOOK_URL);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setDoOutput(true);
-            conn.setRequestMethod("POST");
-            conn.setRequestProperty("Content-Type", "application/json");
+        // Retrieve webhook from Environment Variable (passed via GitHub Actions or Local OS)
+        String webhookUrl = System.getenv("SLACK_WEBHOOK_URL");
 
+        // If no webhook is found, we log a warning and skip (prevents local crashes)
+        if (webhookUrl == null || webhookUrl.isEmpty()) {
+            System.out.println("[WARN] SLACK_WEBHOOK_URL not found. Skipping notification.");
+            return;
+        }
+
+        try {
+            // Slack expects a simple JSON object: {"text": "your message"}
             String jsonPayload = "{\"text\": \"" + message + "\"}";
 
-            try (OutputStream os = conn.getOutputStream()) {
-                os.write(jsonPayload.getBytes(StandardCharsets.UTF_8));
-            }
-            int responseCode = conn.getResponseCode();
-            System.out.println("Notification sent. Status Code: " + responseCode);
+            RestAssured.given()
+                    .contentType(ContentType.JSON)
+                    .body(jsonPayload)
+                    .post(webhookUrl)
+                    .then()
+                    .statusCode(200);
+
+            System.out.println("[INFO] Slack notification sent successfully.");
         } catch (Exception e) {
-            System.err.println("Notification failed: " + e.getMessage());
+            System.err.println("[ERROR] Slack Notification failed: " + e.getMessage());
         }
     }
 }

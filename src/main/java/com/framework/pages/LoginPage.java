@@ -8,7 +8,6 @@ import org.openqa.selenium.WebDriver;
 
 public class LoginPage extends BasePage {
 
-    // Locators (We initialize them in the constructor)
     private By usernameField;
     private By passwordField;
     private By loginButton;
@@ -16,77 +15,74 @@ public class LoginPage extends BasePage {
 
     public LoginPage(WebDriver driver) {
         super(driver);
+        initLocators();
+    }
 
-        // --- HYBRID LOCATOR STRATEGY ---
-        // Check if we are running on a Mobile App
+    /**
+     * Initializes locators based on the active Driver (Web vs. Mobile).
+     */
+    private void initLocators() {
         boolean isNativeMobile = (driver instanceof AndroidDriver) || (driver instanceof IOSDriver);
 
         if (isNativeMobile) {
             // SWAG LABS NATIVE APP LOCATORS (Accessibility IDs)
+            // Note: AppiumBy requires java-client 8.x or higher (which you have)
             usernameField = AppiumBy.accessibilityId("test-Username");
             passwordField = AppiumBy.accessibilityId("test-Password");
-            loginButton   = AppiumBy.accessibilityId("test-LOGIN");
-            errorMessage  = AppiumBy.accessibilityId("test-Error message");
+            loginButton = AppiumBy.accessibilityId("test-LOGIN");
+            errorMessage = AppiumBy.accessibilityId("test-Error message");
         } else {
             // SWAG LABS WEB LOCATORS (Standard IDs)
             usernameField = By.id("user-name");
             passwordField = By.id("password");
-            loginButton   = By.id("login-button");
-            errorMessage  = By.cssSelector("h3[data-test='error']");
+            loginButton = By.id("login-button");
+            errorMessage = By.cssSelector("h3[data-test='error']");
         }
     }
 
-    // 2. Actions
+    // ==================================================
+    // ACTIONS
+    // ==================================================
 
-    public void enterUsername(String username) {
+    public void login(String username, String password) {
         enterText(usernameField, username, "Username Field");
-    }
-
-    public void enterPassword(String password) {
         enterText(passwordField, password, "Password Field");
-    }
-
-    public void clickLoginButton() {
         click(loginButton, "Login Button");
     }
 
+    /**
+     * Robust Error Message Retrieval.
+     * Handles Web (Text), Android (Child TextView), and iOS (Label Attribute).
+     */
     public String getErrorMessage() {
         // 1. Try standard getText (Works for Web)
         String text = getText(errorMessage);
 
-        // 2. Mobile Fallback Logic (If text is empty)
+        // 2. Mobile Fallback Logic
+        // Often the Accessibility ID is on a Container, so basic .getText() returns nothing.
         if (text == null || text.isEmpty()) {
-
             if (driver instanceof AndroidDriver) {
-                // ANDROID: The ID points to a ViewGroup container.
-                // We have to find the child TextView to get the actual text.
                 try {
+                    // Find the child TextView inside the error container
                     text = driver.findElement(errorMessage)
                             .findElement(By.className("android.widget.TextView"))
                             .getText();
                 } catch (Exception e) {
-                    System.out.println("DEBUG: Failed to find child TextView on Android: " + e.getMessage());
+                    System.out.println("[WARN] Failed to find child TextView on Android");
                 }
-            }
-            else if (driver instanceof IOSDriver) {
-                // IOS: Text is usually hidden in 'label' or 'name' attributes
+            } else if (driver instanceof IOSDriver) {
                 try {
+                    // iOS text is often hidden in 'label' or 'name' attributes
                     text = driver.findElement(errorMessage).getAttribute("label");
                     if (text == null || text.isEmpty()) {
                         text = driver.findElement(errorMessage).getAttribute("name");
                     }
                 } catch (Exception e) {
-                    System.out.println("DEBUG: Failed to retrieve iOS attribute: " + e.getMessage());
+                    System.out.println("[WARN] Failed to retrieve iOS attribute");
                 }
             }
         }
         return text;
-    }
-
-    public void login(String username, String password) {
-        enterUsername(username);
-        enterPassword(password);
-        clickLoginButton();
     }
 
     public boolean isLoginButtonDisplayed() {

@@ -1,11 +1,12 @@
 package com.framework.driver;
 
-import com.framework.utils.ConfigReader;
 import com.epam.healenium.SelfHealingDriver;
+import com.framework.utils.ConfigReader;
 import io.appium.java_client.android.AndroidDriver;
 import io.appium.java_client.android.options.UiAutomator2Options;
 import io.appium.java_client.ios.IOSDriver;
 import io.appium.java_client.ios.options.XCUITestOptions;
+import org.openqa.selenium.MutableCapabilities;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -17,179 +18,143 @@ import org.openqa.selenium.remote.RemoteWebDriver;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.HashMap;
 
 /**
  * DriverFactory: Universal logic for Web, Android, and iOS.
- * Integrated with Healenium for Self-Healing Web Tests.
+ * Includes Self-Healing (Healenium) and Cloud (Sauce Labs) support.
  */
-        public class DriverFactory {
+public class DriverFactory {
 
-        public static WebDriver createInstance(String browser, String headless) throws MalformedURLException {
+    public static WebDriver createInstance(String browser, String headless) throws MalformedURLException {
         WebDriver delegate = null;
-
         String mode = ConfigReader.getProperty("execution_mode");
-        // Fallback to "local" if mode is missing in config
         if (mode == null) mode = "local";
 
-        String gridUrl = ConfigReader.getProperty("grid_url");
-        String appiumUrl = "http://127.0.0.1:4723";
-
         System.out.println("=========================================");
-        System.out.println("DEBUG: DriverFactory initialized.");
-        System.out.println("DEBUG: Execution Mode: [" + mode + "]");
-        System.out.println("DEBUG: Browser/Platform: [" + browser + "]");
-        System.out.println("DEBUG: Headless Mode: [" + headless + "]");
+        System.out.println("[INFO] DriverFactory Initialized");
+        System.out.println("[INFO] Mode: " + mode);
+        System.out.println("[INFO] Browser: " + browser);
         System.out.println("=========================================");
 
         boolean isHeadless = Boolean.parseBoolean(headless);
 
         // ==========================================================
-        // 1. SETUP OPTIONS
+        // 1. WEB OPTIONS (Chrome, Firefox, Edge)
         // ==========================================================
-
-        // WEB OPTIONS - CHROME
         ChromeOptions chromeOptions = new ChromeOptions();
         chromeOptions.addArguments("--remote-allow-origins=*");
         if (isHeadless) {
-        chromeOptions.addArguments("--headless=new"); // Modern Headless
-        chromeOptions.addArguments("--window-size=1920,1080");
-        chromeOptions.addArguments("--disable-gpu");
-        chromeOptions.addArguments("--no-sandbox");
-        } else {
-        chromeOptions.addArguments("--start-maximized"); // Force visible window
+            chromeOptions.addArguments("--headless=new");
+            chromeOptions.addArguments("--window-size=1920,1080");
         }
 
-        // WEB OPTIONS - FIREFOX
         FirefoxOptions firefoxOptions = new FirefoxOptions();
         if (isHeadless) {
-        firefoxOptions.addArguments("-headless");
-        firefoxOptions.addArguments("--width=1920");
-        firefoxOptions.addArguments("--height=1080");
+            firefoxOptions.addArguments("-headless");
+            firefoxOptions.addArguments("--width=1920");
+            firefoxOptions.addArguments("--height=1080");
         }
 
-        // WEB OPTIONS - EDGE
         EdgeOptions edgeOptions = new EdgeOptions();
-        if (isHeadless) {
-        edgeOptions.addArguments("--headless");
-        } else {
-        edgeOptions.addArguments("--start-maximized");
-        }
+        if (isHeadless) edgeOptions.addArguments("--headless");
 
-        // ANDROID OPTIONS
+        // ==========================================================
+        // 2. MOBILE OPTIONS (Android, iOS)
+        // ==========================================================
         UiAutomator2Options androidOptions = new UiAutomator2Options();
         if ("android".equalsIgnoreCase(browser)) {
-        androidOptions.setDeviceName(ConfigReader.getProperty("android_device_name"));
-        androidOptions.setApp(ConfigReader.getProperty("android_app_path"));
-        androidOptions.setAutomationName("UiAutomator2");
-        androidOptions.setCapability("appWaitActivity", "*");
-        androidOptions.setCapability("appWaitDuration", 30000);
+            androidOptions.setDeviceName("Android Emulator");
+            androidOptions.setAutomationName("UiAutomator2");
+            androidOptions.setApp(ConfigReader.getProperty("android_app_path"));
         }
 
-        // iOS OPTIONS
         XCUITestOptions iosOptions = new XCUITestOptions();
         if ("ios".equalsIgnoreCase(browser)) {
-        iosOptions.setDeviceName(ConfigReader.getProperty("ios_device_name"));
-        iosOptions.setPlatformVersion(ConfigReader.getProperty("ios_version"));
-        iosOptions.setApp(ConfigReader.getProperty("ios_app_path"));
-        iosOptions.setAutomationName("XCUITest");
+            iosOptions.setDeviceName("iPhone 15");
+            iosOptions.setAutomationName("XCUITest");
+            iosOptions.setApp(ConfigReader.getProperty("ios_app_path"));
         }
 
         // ==========================================================
-        // 2. EXECUTION LOGIC
+        // 3. EXECUTION LOGIC (Local vs Cloud vs Grid)
         // ==========================================================
+        /* * NOTE:
+         * Cloud execution is fully implemented for scalability.
+         * To enable:
+         * 1. Set 'execution_mode=cloud' in config.properties
+         * 2. Export SAUCE_USERNAME and SAUCE_ACCESS_KEY as Env Variables
+         */
+        if ("cloud".equalsIgnoreCase(mode)) {
+            // --- SAUCE LABS CLOUD CONFIGURATION ---
+            // Matches the secrets used in your GitHub Actions (.github/workflows/regression.yml)
+            String username = System.getenv("SAUCE_USERNAME");
+            String accessKey = System.getenv("SAUCE_ACCESS_KEY");
+            String sauceUrl = "https://" + username + ":" + accessKey + "@ondemand.us-west-1.saucelabs.com:443/wd/hub";
 
-        if ("grid".equalsIgnoreCase(mode)) {
-        // --- DOCKER GRID EXECUTION ---
-        URL url = new URL(gridUrl);
-        switch (browser.toLowerCase()) {
-        case "chrome": delegate = new RemoteWebDriver(url, chromeOptions); break;
-        case "firefox": delegate = new RemoteWebDriver(url, firefoxOptions); break;
-        case "edge": delegate = new RemoteWebDriver(url, edgeOptions); break;
-        case "android": delegate = new AndroidDriver(url, androidOptions); break;
-        case "ios": delegate = new IOSDriver(url, iosOptions); break;
-        default: throw new IllegalArgumentException("Invalid grid browser: " + browser);
-        }
+            MutableCapabilities sauceOptions = new MutableCapabilities();
+            sauceOptions.setCapability("username", username);
+            sauceOptions.setCapability("accessKey", accessKey);
+            sauceOptions.setCapability("build", "Director Suite Build");
+            sauceOptions.setCapability("name", "Regression Test: " + browser);
 
-        } else if ("cloud".equalsIgnoreCase(mode)) {
-        // --- BROWSERSTACK CLOUD EXECUTION ---
-        String userName = System.getenv("BROWSERSTACK_USERNAME");
-        if (userName == null) userName = ConfigReader.getProperty("cloud_username");
+            URL remoteUrl = new URL(sauceUrl);
 
-        String accessKey = System.getenv("BROWSERSTACK_ACCESS_KEY");
-        if (accessKey == null) accessKey = ConfigReader.getProperty("cloud_key");
-
-        String authUrl = "https://" + userName + ":" + accessKey + "@hub-cloud.browserstack.com/wd/hub";
-        URL remoteUrl = new URL(authUrl);
-
-        if ("android".equalsIgnoreCase(browser)) {
-        androidOptions.setApp(ConfigReader.getProperty("cloud_android_app"));
-        delegate = new AndroidDriver(remoteUrl, androidOptions);
-        } else if ("ios".equalsIgnoreCase(browser)) {
-        iosOptions.setApp(ConfigReader.getProperty("cloud_ios_app"));
-        delegate = new IOSDriver(remoteUrl, iosOptions);
-        } else {
-        // WEB CLOUD
-        HashMap<String, Object> bstackOptions = new HashMap<>();
-        bstackOptions.put("userName", userName);
-        bstackOptions.put("accessKey", accessKey);
-        bstackOptions.put("os", "Windows");
-        bstackOptions.put("osVersion", "11");
-        bstackOptions.put("projectName", "QA Director Framework");
-        bstackOptions.put("buildName", "Build 1.0");
-
-        if ("firefox".equalsIgnoreCase(browser)) {
-        firefoxOptions.setCapability("bstack:options", bstackOptions);
-        delegate = new RemoteWebDriver(remoteUrl, firefoxOptions);
-        } else {
-        chromeOptions.setCapability("bstack:options", bstackOptions);
-        delegate = new RemoteWebDriver(remoteUrl, chromeOptions);
-        }
-        }
-
-        } else {
-        // --- LOCAL EXECUTION ---
-        if ("mobile".equalsIgnoreCase(mode) || "android".equalsIgnoreCase(browser)) {
-        System.out.println("DEBUG: Starting Local Appium Driver...");
-        delegate = new AndroidDriver(new URL(appiumUrl), androidOptions);
-        } else {
-        // WEB LOCAL
-        switch (browser.toLowerCase()) {
-        case "chrome":
-        delegate = new ChromeDriver(chromeOptions);
-        break;
-        case "firefox":
-        delegate = new FirefoxDriver(firefoxOptions);
-        break;
-        case "edge":
-        delegate = new EdgeDriver(edgeOptions);
-        break;
-        default: throw new IllegalArgumentException("Invalid local browser: " + browser);
-        }
-        }
-        }
-
-        // 3. Set Timeouts
-        if (delegate != null) {
-        delegate.manage().timeouts().implicitlyWait(java.time.Duration.ofSeconds(10));
+            switch (browser.toLowerCase()) {
+                case "chrome":
+                    chromeOptions.setCapability("sauce:options", sauceOptions);
+                    delegate = new RemoteWebDriver(remoteUrl, chromeOptions);
+                    break;
+                case "firefox":
+                    firefoxOptions.setCapability("sauce:options", sauceOptions);
+                    delegate = new RemoteWebDriver(remoteUrl, firefoxOptions);
+                    break;
+                case "android":
+                    androidOptions.setCapability("sauce:options", sauceOptions);
+                    delegate = new AndroidDriver(remoteUrl, androidOptions);
+                    break;
+                case "ios":
+                    iosOptions.setCapability("sauce:options", sauceOptions);
+                    delegate = new IOSDriver(remoteUrl, iosOptions);
+                    break;
+            }
+        } else if ("local".equalsIgnoreCase(mode)) {
+            // --- LOCAL EXECUTION ---
+            if ("android".equalsIgnoreCase(browser)) {
+                delegate = new AndroidDriver(new URL("http://127.0.0.1:4723"), androidOptions);
+            } else if ("ios".equalsIgnoreCase(browser)) {
+                delegate = new IOSDriver(new URL("http://127.0.0.1:4723"), iosOptions);
+            } else {
+                // Web Local
+                switch (browser.toLowerCase()) {
+                    case "chrome":
+                        delegate = new ChromeDriver(chromeOptions);
+                        break;
+                    case "firefox":
+                        delegate = new FirefoxDriver(firefoxOptions);
+                        break;
+                    case "edge":
+                        delegate = new EdgeDriver(edgeOptions);
+                        break;
+                }
+            }
         }
 
         // ==========================================================
-        // 4. HEALENIUM INTEGRATION
+        // 4. HEALENIUM (Self-Healing Wrapper)
         // ==========================================================
-        boolean healingEnabled = Boolean.parseBoolean(System.getProperty("toggle.healing", "false"));
+        // Only wrap if it's NOT mobile (Healenium is primarily for Web)
         boolean isMobile = "android".equalsIgnoreCase(browser) || "ios".equalsIgnoreCase(browser);
 
-        if (delegate != null && healingEnabled && !isMobile) {
-        try {
-        System.out.println("DEBUG: Wrapping driver with Healenium...");
-        return SelfHealingDriver.create(delegate);
-        } catch (Exception e) {
-        System.err.println("HEALENIUM ERROR: Backend missing. Using raw driver.");
-        return delegate;
-        }
+        if (delegate != null && !isMobile) {
+            try {
+                // Returns the Self-Healing driver if backend is connected
+                return SelfHealingDriver.create(delegate);
+            } catch (Exception e) {
+                System.out.println("[WARN] Healenium backend not found. Using standard driver.");
+                return delegate;
+            }
         }
 
         return delegate;
-        }
-        }
+    }
+}

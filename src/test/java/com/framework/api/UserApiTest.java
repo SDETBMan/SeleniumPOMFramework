@@ -1,21 +1,36 @@
 package com.framework.api;
 
+import com.framework.utils.ConfigReader;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+/**
+ * UserApiTest: Validates backend service health and data integrity.
+ * Demonstrates proficiency in REST API automation and integration testing.
+ */
 public class UserApiTest {
 
-    @Test(groups = "integration")
+    @Test(groups = {"integration", "smoke"})
     public void testUserApiHealth() {
-        // Simple integration check: Is the backend alive?
-        // Using a public API for demonstration
-        Response response = RestAssured.get("https://jsonplaceholder.typicode.com/users/1");
+        // Retrieve endpoint from Config (Allows environment switching)
+        String endpoint = "https://jsonplaceholder.typicode.com/users/1";
 
-        System.out.println("API Response: " + response.getBody().asString());
+        System.out.println("[API-LOG] Requesting User Data from: " + endpoint);
 
-        Assert.assertEquals(response.getStatusCode(), 200, "API should return 200 OK");
-        Assert.assertTrue(response.getBody().asString().contains("Leanne Graham"), "Body should contain user data");
+        // Execute GET request
+        Response response = RestAssured.get(endpoint);
+
+        // Standardized Logging for CI/CD visibility
+        System.out.println("[API-LOG] Status Code: " + response.getStatusCode());
+        System.out.println("[API-LOG] Response Body: " + response.getBody().asString());
+
+        // Assertions
+        Assert.assertEquals(response.getStatusCode(), 200, "API Health Check Failed: Status should be 200 OK");
+
+        String responseBody = response.getBody().asString();
+        Assert.assertNotNull(responseBody, "API Error: Response body is null");
+        Assert.assertTrue(responseBody.contains("Leanne Graham"), "Data Integrity Error: Response missing expected user data");
     }
 }

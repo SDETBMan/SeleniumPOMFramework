@@ -5,11 +5,31 @@ on:
     branches: [ "main", "master" ]
   pull_request:
     branches: [ "main", "master" ]
-  workflow_dispatch: # Allows you to click a "Run" button manually
+  workflow_dispatch:
+    # CONTROL PANEL: These inputs let you decide WHAT to run manually
+    inputs:
+      test_suite:
+        description: 'Test Suite XML'
+        required: true
+        default: 'src/test/resources/testng.xml'
+      upload_mobile_app:
+        description: 'Upload Mobile App?'
+        type: boolean
+        default: false
+      run_performance:
+        description: 'Run JMeter Performance?'
+        type: boolean
+        default: false
 
 jobs:
-  test:
+  Test:
     runs-on: ubuntu-latest
+
+    # GLOBAL ENV VARS (Accessible to all steps)
+    env:
+      SAUCE_USERNAME: ${{ secrets.SAUCE_USERNAME }}
+      SAUCE_ACCESS_KEY: ${{ secrets.SAUCE_ACCESS_KEY }}
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
     steps:
       - name: Checkout Code
@@ -22,10 +42,31 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
+      # 1. RUN FUNCTIONAL TESTS (Web / Mobile)
+      # We dynamically set 'skipAppUpload' based on your input (defaulting to true for Pushes)
       - name: Run TestNG Suite
         run: >
           mvn clean test 
-          "-DsuiteXmlFile=testng.xml" 
-          "-DskipAppUpload=true" 
-          "-Dcloud_username=${{ secrets.BROWSERSTACK_USERNAME }}" 
-          "-Dcloud_key=${{ secrets.BROWSERSTACK_ACCESS_KEY }}"
+          "-DsuiteXmlFile=${{ inputs.test_suite || 'src/test/resources/testng.xml' }}" 
+          "-DskipAppUpload=${{ github.event_name == 'workflow_dispatch' && !inputs.upload_mobile_app || 'true' }}" 
+          "-Dheadless=true"
+
+      # 2. (OPTIONAL) RUN PERFORMANCE TESTS
+      # Only runs if you checked the box in the manual trigger
+      - name: Run JMeter Performance Test
+        if: ${{ inputs.run_performance == true }}
+        run: mvn jmeter:jmeter
+
+      # 3. GENERATE REPORT (Even if tests fail)
+      - name: Generate Allure Report
+        if: always()
+        run: mvn allure:report
+
+      # 4. UPLOAD ARTIFACTS (Save the report to zip)
+      - name: Upload Test Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report
+          path: target/site/allure-maven-plugin/
+          retention-days: 7

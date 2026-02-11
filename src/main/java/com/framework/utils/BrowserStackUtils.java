@@ -2,57 +2,59 @@ package com.framework.utils;
 
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
+
 import java.io.File;
 
+/**
+ * BrowserStackUtils: Manages mobile app uploads to the BrowserStack App-Automate cloud.
+ * Demonstrates proficiency in REST API automation using Rest Assured.
+ */
 public class BrowserStackUtils {
 
     private static final String UPLOAD_URL = "https://api-cloud.browserstack.com/app-automate/upload";
 
     public static void main(String[] args) {
 
-        // SKIP SWITCH: Allows bypassing upload for local runs
+        // Skip logic for local or Sauce Labs execution
         if (System.getProperty("skipAppUpload") != null) {
-            System.out.println("⏩ SKIPPING APP UPLOAD (Requested via -DskipAppUpload)...");
-            System.out.println("   Using previously uploaded apps on BrowserStack.");
+            System.out.println("[INFO] Skipping app upload as requested via system property.");
             return;
         }
-        // Define file paths
+
         String androidPath = "src/test/resources/apps/Android.SauceLabs.Mobile.Sample.app.2.7.1.apk";
         String iosPath = "src/test/resources/apps/iOS.RealDevice.SauceLabs.Mobile.Sample.app.2.7.1.ipa";
 
-        System.out.println(">>> STARTING DUAL APP UPLOAD <<<");
+        System.out.println("[INFO] Initiating dual app upload to BrowserStack...");
 
-        // 1. Get and Sanitize Credentials
         String user = getUsername();
         String key = getAccessKey();
 
         if (user == null || key == null) {
-            System.err.println("FATAL: Credentials missing. Check Env Vars or Config.");
+            System.err.println("[FATAL] BrowserStack credentials missing. Check environment variables.");
             return;
         }
 
-        System.out.println("DEBUG: User: " + user.substring(0, 3) + "***");
-        System.out.println("DEBUG: Key Length: " + key.length()); // Good sanity check
-
-        // 2. Upload Apps
+        // Uploading both platforms
         uploadAppIfExists(androidPath, "QA_Director_Android_Build", user, key);
         uploadAppIfExists(iosPath, "QA_Director_iOS_Build", user, key);
 
-        System.out.println(">>> UPLOAD PROCESS COMPLETE <<<");
+        System.out.println("[INFO] Upload process finalized.");
     }
 
+    /**
+     * Uploads the specified file to the BrowserStack API if it exists locally.
+     */
     public static void uploadAppIfExists(String filePath, String customId, String user, String key) {
         File appFile = new File(filePath);
         if (!appFile.exists()) {
-            System.err.println("SKIP: File not found: " + filePath);
+            System.out.println("[WARN] File not found: " + filePath);
             return;
         }
 
-        System.out.println("Uploading " + appFile.getName() + " as [" + customId + "]...");
+        System.out.println("[INFO] Uploading: " + appFile.getName() + " (ID: " + customId + ")");
 
         try {
             Response response = RestAssured.given()
-                    // Use PREEMPTIVE Auth (Sends creds immediately)
                     .auth().preemptive().basic(user, key)
                     .header("Content-Type", "multipart/form-data")
                     .multiPart("file", appFile)
@@ -61,33 +63,26 @@ public class BrowserStackUtils {
 
             if (response.getStatusCode() == 200) {
                 String appUrl = response.jsonPath().getString("app_url");
-                System.out.println("SUCCESS! App URL: " + appUrl);
+                System.out.println("[SUCCESS] App uploaded. URL: " + appUrl);
             } else {
-                System.err.println("FAILED: " + response.getStatusCode());
-                System.err.println("   Response: " + response.getBody().asString());
+                System.err.println("[ERROR] Upload failed with status: " + response.getStatusCode());
+                System.err.println("[DEBUG] Response body: " + response.getBody().asString());
             }
         } catch (Exception e) {
-            System.err.println("EXCEPTION: " + e.getMessage());
-            e.printStackTrace();
+            System.err.println("[ERROR] Exception during API call: " + e.getMessage());
         }
     }
 
-    // --- ROBUST CREDENTIAL GETTERS (Now with .trim()) ---
     private static String getUsername() {
-        String env = System.getenv("BROWSERSTACK_USERNAME");
-        String val = (env != null && !env.isEmpty()) ? env : ConfigReader.getProperty("cloud_username");
-        return (val != null) ? val.trim() : null; // Remove hidden spaces
+        String val = System.getenv("BROWSERSTACK_USERNAME");
+        if (val == null) val = ConfigReader.getProperty("cloud_username");
+        return (val != null) ? val.trim() : null;
     }
 
     private static String getAccessKey() {
-        String env = System.getenv("BROWSERSTACK_ACCESS_KEY");
-        String val = (env != null && !env.isEmpty()) ? env : ConfigReader.getProperty("cloud_key");
-        return (val != null) ? val.trim() : null; // Remove hidden spaces
-    }
-
-    // Compatibility method for older calls
-    public static void uploadApp(String path) {
-        uploadAppIfExists(path, "QA_Director_iOS_Build", getUsername(), getAccessKey());
+        String val = System.getenv("BROWSERSTACK_ACCESS_KEY");
+        if (val == null) val = ConfigReader.getProperty("cloud_key");
+        return (val != null) ? val.trim() : null;
     }
 }
 

@@ -8,40 +8,53 @@ import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+/**
+ * DashboardTest: Validates post-login navigation, UI elements, and the logout lifecycle.
+ * Utilizes DataProviders for broad user-persona coverage.
+ */
 public class DashboardTest extends BaseTest {
 
     @Test(groups = "regression", dataProvider = "loginData")
     public void testUserCanAccessDashboard(String username, String password) {
         LoginPage loginPage = new LoginPage(DriverManager.getDriver());
-
-        // 1. Log In
-        loginPage.login(username, password); // Used the cleaner convenience method
-
-        // 2. Dashboard Checks
         DashboardPage dashboardPage = new DashboardPage(DriverManager.getDriver());
 
+        System.out.println("[INFO] Executing Dashboard access test for user persona: " + username);
+
+        // 1. Unified Login
+        loginPage.login(username, password);
+
+        // 2. Functional UI Assertions
         Assert.assertTrue(dashboardPage.isCartIconDisplayed(),
-                "The Dashboard cart icon was not displayed after login for user: " + username);
+                "CRITICAL: Shopping cart icon missing on Dashboard for user: " + username);
 
         String headerText = dashboardPage.getWelcomeMessageText();
-        System.out.println("Dashboard Header for " + username + ": " + headerText);
-        Assert.assertFalse(headerText.isEmpty(), "Dashboard text should not be empty");
+        System.out.println("[INFO] Dashboard Header captured: " + headerText);
+
+        // Products is the standard header for Swag Labs (Web and Mobile)
+        Assert.assertTrue(headerText.equalsIgnoreCase("Products"),
+                "VALIDATION FAILED: Dashboard header did not match expected 'Products'. Found: " + headerText);
     }
 
     @Test(groups = "regression")
     public void testLogoutFlow() {
         LoginPage loginPage = new LoginPage(DriverManager.getDriver());
-        loginPage.login("standard_user", "secret_sauce");
-
         DashboardPage dashboardPage = new DashboardPage(DriverManager.getDriver());
 
-        // The new clickLogoutButton() in DashboardPage opens the menu automatically.
+        // 1. Establish session
+        loginPage.login("standard_user", "secret_sauce");
+
+        // 2. Execute Logout (Handles both Web JS-Menu and Mobile Native-Menu)
         dashboardPage.clickLogoutButton();
 
-        // Native mobile apps do not have URLs. We only verify the Login Button exists.
-        Assert.assertTrue(loginPage.isLoginButtonDisplayed(), "Login button should be visible after logout");
+        // 3. Verify Session Termination (Returning to Login state)
+        Assert.assertTrue(loginPage.isLoginButtonDisplayed(),
+                "SESSION ERROR: Login button not visible after logout sequence.");
     }
 
+    /**
+     * Test Data Provider: Covers standard, UI-bug, and latency-heavy user accounts.
+     */
     @DataProvider(name = "loginData")
     public Object[][] getLoginData() {
         return new Object[][]{

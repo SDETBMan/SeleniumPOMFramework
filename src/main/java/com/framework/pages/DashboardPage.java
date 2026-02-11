@@ -11,22 +11,43 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 
 public class DashboardPage extends BasePage {
 
-    // 1. LOCATORS
-    private By cartIcon = By.className("shopping_cart_link");
-    private By menuButton = By.id("react-burger-menu-btn");
-    private By logoutLink = By.id("logout_sidebar_link");
-    private By pageTitle = By.className("title");
+    // 1. DYNAMIC LOCATORS (Initialized in Constructor)
+    private By cartIcon;
+    private By menuButton;
+    private By logoutLink;
+    private By pageTitle;
 
-    // Mobile
-    private By mobileMenu = AppiumBy.accessibilityId("test-Menu");
-    private By mobileLogout = AppiumBy.accessibilityId("test-LOGOUT");
-
-    // 2. CONSTRUCTOR
     public DashboardPage(WebDriver driver) {
         super(driver);
+        initLocators();
     }
 
-    // 3. ACTION METHODS
+    /**
+     * Initialize locators based on Platform (Web vs. Mobile).
+     */
+    private void initLocators() {
+        boolean isNativeMobile = (driver instanceof AndroidDriver) || (driver instanceof IOSDriver);
+
+        if (isNativeMobile) {
+            // MOBILE (Accessibility IDs)
+            cartIcon = AppiumBy.accessibilityId("test-Cart");
+            menuButton = AppiumBy.accessibilityId("test-Menu");
+            logoutLink = AppiumBy.accessibilityId("test-LOGOUT");
+            // Android title is usually a TextView "PRODUCTS"
+            pageTitle = By.xpath("//android.widget.TextView[@text='PRODUCTS']");
+        } else {
+            // WEB (Standard CSS/ID)
+            cartIcon = By.className("shopping_cart_link");
+            menuButton = By.id("react-burger-menu-btn");
+            logoutLink = By.id("logout_sidebar_link");
+            pageTitle = By.className("title");
+        }
+    }
+
+    // ==================================================
+    // 2. ACTION METHODS
+    // ==================================================
+
     public boolean isCartIconDisplayed() {
         try {
             return driver.findElement(cartIcon).isDisplayed();
@@ -36,20 +57,23 @@ public class DashboardPage extends BasePage {
     }
 
     public void clickLogoutButton() {
+        // 1. Open Menu
+        click(menuButton, "Hamburger Menu");
+
+        // 2. Click Logout (Platform Specific Logic)
         if (driver instanceof AndroidDriver || driver instanceof IOSDriver) {
-            // Mobile Logic (Native)
-            click(mobileMenu, "Mobile Menu");
-            click(mobileLogout, "Mobile Logout");
+            // Mobile: Just tap it
+            click(logoutLink, "Logout Link");
         } else {
-            // Web Logic (Robust JS Fix)
-            click(menuButton, "Hamburger Menu");
-
-            // Wait for the link to exist in the DOM (even if hidden/animating)
-            WebElement logoutBtn = wait.until(ExpectedConditions.presenceOfElementLocated(logoutLink));
-
-            // Force Click with JavaScript (Bypasses animation/obscured errors)
-            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", logoutBtn);
-            System.out.println("[WEB-ACTION] Force Clicked: Logout Link (JS)");
+            // Web: Handle Animation Lag with JS Force Click
+            try {
+                WebElement logoutBtn = wait.until(ExpectedConditions.presenceOfElementLocated(logoutLink));
+                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", logoutBtn);
+                System.out.println("[WEB-ACTION] Force Clicked: Logout Link (JS)");
+            } catch (Exception e) {
+                // Fallback to standard click if JS fails
+                click(logoutLink, "Logout Link");
+            }
         }
     }
 

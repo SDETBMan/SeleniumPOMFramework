@@ -10,51 +10,57 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.Assert;
 import org.testng.annotations.Test;
+
 import java.time.Duration;
 
+/**
+ * SanityTest: A "bare-metal" Selenium test independent of the framework's BaseTest.
+ * Used for environment verification and troubleshooting driver/binary issues.
+ */
 public class SanityTest {
 
-    @Test
+    @Test(groups = "sanity")
     public void rawSeleniumTest() {
-        System.out.println(">>> SANITY TEST STARTING <<<");
+        System.out.println("[INFO] Starting Bare-Metal Sanity Check...");
 
-        // 1. Setup Raw Driver (No BaseTest)
+        // 1. Manual Driver Setup (Bypassing DriverFactory)
         WebDriverManager.chromedriver().setup();
         ChromeOptions options = new ChromeOptions();
-        options.addArguments("--headless=new"); // Keep headless for now
+        options.addArguments("--headless=new");
         options.addArguments("--window-size=1920,1080");
         options.addArguments("--remote-allow-origins=*");
 
         WebDriver driver = new ChromeDriver(options);
 
         try {
-            // 2. Go to URL
+            // 2. Navigation
             driver.get("https://www.saucedemo.com/");
-            System.out.println(">>> OPENED: " + driver.getTitle());
+            System.out.println("[INFO] Page Title: " + driver.getTitle());
 
-            // 3. Login (Hardcoded)
+            // 3. Raw Element Interaction
             driver.findElement(By.id("user-name")).sendKeys("standard_user");
             driver.findElement(By.id("password")).sendKeys("secret_sauce");
             driver.findElement(By.id("login-button")).click();
-            System.out.println(">>> CLICKED LOGIN");
 
-            // 4. Wait for Products
+            // 4. Explicit Synchronization
             WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
             WebElement header = wait.until(ExpectedConditions.visibilityOfElementLocated(By.className("title")));
 
-            // 5. Verify
-            boolean isDisplayed = header.isDisplayed();
-            System.out.println(">>> HEADER FOUND? " + isDisplayed);
-            System.out.println(">>> TEXT IS: " + header.getText());
+            // 5. Assertions
+            String headerText = header.getText();
+            System.out.println("[INFO] Header Found: " + headerText);
 
-            Assert.assertTrue(isDisplayed);
+            Assert.assertEquals(headerText, "Products", "Sanity Check Failed: Dashboard header mismatch.");
 
         } catch (Exception e) {
-            System.out.println(">>> SANITY FAILED! URL: " + driver.getCurrentUrl());
-            e.printStackTrace();
-            Assert.fail("Sanity Check Crashed: " + e.getMessage());
+            System.err.println("[FATAL] Sanity test failed at URL: " + driver.getCurrentUrl());
+            Assert.fail("Environment Sanity Check Failed: " + e.getMessage());
         } finally {
-            driver.quit();
+            // 6. Manual Teardown
+            if (driver != null) {
+                driver.quit();
+                System.out.println("[INFO] Sanity Test Finalized.");
+            }
         }
     }
 }

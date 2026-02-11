@@ -8,28 +8,34 @@ import com.framework.utils.ConfigReader;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+/**
+ * AddToCartTest: Validates the core e-commerce workflow of selecting and adding items.
+ */
 public class AddToCartTest extends BaseTest {
 
-    @Test(groups = {"regression"})
+    @Test(groups = {"regression", "smoke"})
     public void testAddBackpackToCart() {
+        // Initialize Pages
         LoginPage loginPage = new LoginPage(DriverManager.getDriver());
         InventoryPage inventoryPage = new InventoryPage(DriverManager.getDriver());
 
+        // Step 1: Login
         loginPage.login(ConfigReader.getProperty("app_username"), ConfigReader.getProperty("app_password"));
 
-        // 1. Initial Check (Should be 0)
-        Assert.assertEquals(inventoryPage.getCartItemCount(), 0, "Cart should be empty at start!");
+        // Step 2: Verify initial state
+        int initialCount = inventoryPage.getCartItemCount();
+        System.out.println("[INFO] Initial Cart Count: " + initialCount);
+        Assert.assertEquals(initialCount, 0, "Pre-condition Failed: Cart was not empty at start.");
 
-        // 2. Add Item
+        // Step 3: Add "Sauce Labs Backpack" to cart
         inventoryPage.addToCart("Sauce Labs Backpack");
 
-        // 3. Wait for the UI to update!
+        // Step 4: Synchronize with UI
         inventoryPage.waitForCartBadge();
 
-        // 4. Validate Count (Should be 1)
+        // Step 5: Final Validation
         int currentCount = inventoryPage.getCartItemCount();
-        System.out.println(">>> 🛒 Cart Count is now: " + currentCount);
-
-        Assert.assertEquals(currentCount, 1, "Cart count did not update to 1!");
+        System.out.println("[INFO] Updated Cart Count: " + currentCount);
+        Assert.assertEquals(currentCount, 1, "Validation Failed: Cart count did not increment to 1.");
     }
 }

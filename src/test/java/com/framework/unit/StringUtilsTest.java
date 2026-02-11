@@ -1,25 +1,33 @@
 package com.framework.unit;
 
+import com.framework.utils.StringUtils;
 import org.testng.Assert;
 import org.testng.annotations.Test;
-import java.util.Random;
 
+/**
+ * StringUtilsTest: Unit tests for utility methods.
+ * Demonstrates high-speed, logic-focused validation independent of the browser.
+ */
 public class StringUtilsTest {
-
-    // This mimics a method we might have in a 'RandomUtils' helper class
-    public String generateRandomEmail() {
-        return "user" + new Random().nextInt(1000) + "@test.com";
-    }
 
     @Test(groups = "unit")
     public void testEmailGenerationFormat() {
-        String email = generateRandomEmail();
+        String email = StringUtils.generateRandomEmail();
+        System.out.println("[UNIT-TEST] Validating generated email: " + email);
 
-        System.out.println("Testing email: " + email);
+        Assert.assertNotNull(email, "Generated email should not be null");
+        Assert.assertTrue(email.contains("@"), "Email missing @ symbol");
+        Assert.assertTrue(email.endsWith(".com"), "Email missing .com suffix");
+        Assert.assertTrue(email.startsWith("user"), "Email missing required prefix");
+    }
 
-        // Assertions: Fast, logic-only checks
-        Assert.assertTrue(email.contains("@"), "Email should contain @ symbol");
-        Assert.assertTrue(email.endsWith(".com"), "Email should end with .com");
-        Assert.assertTrue(email.startsWith("user"), "Email should start with 'user'");
+    @Test(groups = "unit")
+    public void testEmailValidationLogic() {
+        System.out.println("[UNIT-TEST] Testing boundary cases for email validation");
+
+        Assert.assertTrue(StringUtils.isValidEmail("test@example.com"));
+        Assert.assertFalse(StringUtils.isValidEmail(""));
+        Assert.assertFalse(StringUtils.isValidEmail(null));
+        Assert.assertFalse(StringUtils.isValidEmail("missing_at_sign.com"));
     }
 }

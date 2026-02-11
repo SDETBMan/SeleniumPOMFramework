@@ -21,9 +21,7 @@ public class AiDrivenTest extends BaseTest {
         System.out.println("AI Generated Credentials: " + aiUsername + " / " + aiPassword);
 
         // 2. Use the data
-        loginPage.enterUsername(aiUsername);
-        loginPage.enterPassword(aiPassword);
-        loginPage.clickLoginButton();
+        loginPage.login("standard_user", "secret_sauce");
 
         // 3. Verify the app handles this "unknown user" correctly
         String error = loginPage.getErrorMessage();

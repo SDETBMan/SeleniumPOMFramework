@@ -23,73 +23,68 @@ public class BaseTest {
 
         long threadId = Thread.currentThread().getId();
         String testName = context.getCurrentXmlTest().getName();
-        System.out.println(">>> [SETUP] Thread " + threadId + " | Test: " + testName);
+        System.out.println("--------------------------------------------------");
+        System.out.println("[SETUP] Thread " + threadId + " | Test: " + testName);
 
         // ======================================================
-        // 1. ROBUST CONFIG RESOLUTION (Decoupled Logic)
+        // 1. CONFIG RESOLUTION (Priority: System Prop > XML > Config)
         // ======================================================
+        // If Maven passed -Dbrowser=firefox, use that. Otherwise use XML value.
+        String targetBrowser = System.getProperty("browser", browser);
+        String targetHeadless = System.getProperty("headless", headless);
 
-        // A. Resolve BROWSER (System Prop > Config > XML Default)
-        if (System.getProperty("browser") != null) {
-            browser = System.getProperty("browser");
-        } else if (ConfigReader.getProperty("browser") != null && browser.equalsIgnoreCase("chrome")) {
-            // Only fall back to config if System Prop is missing AND XML is default
-            browser = ConfigReader.getProperty("browser");
-        }
-
-        // B. Resolve HEADLESS (System Prop > Config > XML Default)
-        if (System.getProperty("headless") != null) {
-            headless = System.getProperty("headless");
-        } else if (ConfigReader.getProperty("headless") != null) {
-            headless = ConfigReader.getProperty("headless");
-        }
-
-        System.out.println(">>> [SETUP] Target Browser: " + browser + " | Headless: " + headless);
+        System.out.println("[SETUP] Target: " + targetBrowser + " | Headless: " + targetHeadless);
 
         // ======================================================
         // 2. CREATE DRIVER
         // ======================================================
-        WebDriver driver = DriverFactory.createInstance(browser, headless);
+        WebDriver driver = DriverFactory.createInstance(targetBrowser, targetHeadless);
 
         if (driver == null) {
-            throw new RuntimeException(">>> FATAL: DriverFactory returned NULL. Check your Config/Grid status.");
+            throw new RuntimeException("[FATAL] DriverFactory returned NULL. Check your Config/Grid status.");
         }
 
-        // 3. SET TO MANAGER
+        // 3. SET TO MANAGER (ThreadLocal)
         DriverManager.setDriver(driver);
 
         // 4. CONFIGURE WINDOW & WAITS
-        WebDriver currentDriver = DriverManager.getDriver();
-        currentDriver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
-
-        boolean isMobile = browser.equalsIgnoreCase("android") || browser.equalsIgnoreCase("ios");
-        if (!isMobile) {
-            String url = ConfigReader.getProperty("url");
-
-            // Handle Window Size properly based on mode
-            if (Boolean.parseBoolean(headless)) {
-                // Headless needs explicit size to "see" elements
-                currentDriver.manage().window().setSize(new org.openqa.selenium.Dimension(1920, 1080));
-            } else {
-                // Headed mode should just maximize
-                currentDriver.manage().window().maximize();
-            }
-
-            if (url != null) {
-                System.out.println(">>> [NAV] Navigating to: " + url);
-                currentDriver.get(url);
-            }
-        }
+        configureDriver(driver, targetBrowser, targetHeadless);
     }
 
     @AfterMethod(alwaysRun = true)
     public void tearDown() {
-        System.out.println(">>> [TEARDOWN] Cleaning up Thread " + Thread.currentThread().getId());
+        // System.out.println("[TEARDOWN] Cleaning up Thread " + Thread.currentThread().getId());
         WebDriver driver = DriverManager.getDriver();
 
         if (driver != null) {
             driver.quit();
             DriverManager.unload();
+        }
+    }
+
+    /**
+     * Helper method to configure timeouts, window size, and navigation.
+     */
+    private void configureDriver(WebDriver driver, String browser, String headless) {
+        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
+
+        boolean isMobile = browser.equalsIgnoreCase("android") || browser.equalsIgnoreCase("ios");
+
+        if (!isMobile) {
+            // WEB CONFIGURATION
+            if (Boolean.parseBoolean(headless)) {
+                // Headless needs explicit size to "see" elements
+                driver.manage().window().setSize(new org.openqa.selenium.Dimension(1920, 1080));
+            } else {
+                driver.manage().window().maximize();
+            }
+
+            // Navigate to URL from Config
+            String url = ConfigReader.getProperty("url");
+            if (url != null) {
+                // System.out.println("[NAV] Navigating to: " + url);
+                driver.get(url);
+            }
         }
     }
 }

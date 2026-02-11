@@ -10,54 +10,66 @@ import org.testng.ITestContext;
 import org.testng.ITestListener;
 import org.testng.ITestResult;
 
+/**
+ * TestListener: Global observer for test execution events.
+ * Handles logging, screenshot capture on failure, and CI/CD notifications.
+ */
 public class TestListener implements ITestListener {
 
     @Override
     public void onTestStart(ITestResult result) {
         System.out.println("--------------------------------------------------");
-        System.out.println("[INFO] STARTED TEST: " + result.getName());
+        System.out.println("[INFO] STARTED TEST: " + result.getMethod().getMethodName());
         System.out.println("--------------------------------------------------");
     }
 
     @Override
     public void onTestSuccess(ITestResult result) {
-        System.out.println("[INFO] PASSED: " + result.getName());
+        System.out.println("[PASS] " + result.getMethod().getMethodName());
     }
 
     @Override
     public void onTestFailure(ITestResult result) {
-        System.err.println("[ERROR] FAILED: " + result.getName());
+        System.err.println("[FAIL] " + result.getMethod().getMethodName());
+        System.err.println("[ERROR] Reason: " + result.getThrowable().getMessage());
+
         WebDriver driver = DriverManager.getDriver();
         if (driver != null) {
-            System.out.println("[INFO] Capturing Screenshot...");
+            System.out.println("[INFO] Capturing failure screenshot for Allure report...");
             saveScreenshot(driver);
         }
     }
 
     @Override
     public void onTestSkipped(ITestResult result) {
-        System.out.println("[WARN] SKIPPED: " + result.getName());
+        System.out.println("[WARN] SKIPPED: " + result.getMethod().getMethodName());
     }
 
     @Override
     public void onFinish(ITestContext context) {
-        // Summary Message for Slack
-        String message = "Execution Complete!\n" +
-                "Suite: " + context.getSuite().getName() + "\n" +
-                "Passed: " + context.getPassedTests().size() + "\n" +
-                "Failed: " + context.getFailedTests().size() + "\n" +
-                "Skipped: " + context.getSkippedTests().size();
+        // Constructing a Director-Level Summary for Slack
+        String summary = String.format(
+                "Test Suite Execution Complete\n" +
+                        "----------------------------\n" +
+                        "Suite: %s\n" +
+                        "Total Passed: %d\n" +
+                        "Total Failed: %d\n" +
+                        "Total Skipped: %d\n" +
+                        "----------------------------",
+                context.getSuite().getName(),
+                context.getPassedTests().size(),
+                context.getFailedTests().size(),
+                context.getSkippedTests().size()
+        );
 
-        // Safe Slack Notification
-        try {
-            System.out.println("[INFO] Sending Slack Notification...");
-            SlackUtils.sendResult(message);
-        } catch (Exception e) {
-            System.err.println("[WARN] Slack Notification Skipped: " + e.getMessage());
-        }
+        System.out.println("[INFO] Dispatching execution summary to Slack...");
+        SlackUtils.sendResult(summary);
     }
 
-    @Attachment(value = "Page Screenshot", type = "image/png")
+    /**
+     * Captures a screenshot and attaches it directly to the Allure Report.
+     */
+    @Attachment(value = "Failure Screenshot", type = "image/png")
     public byte[] saveScreenshot(WebDriver driver) {
         return ((TakesScreenshot) driver).getScreenshotAs(OutputType.BYTES);
     }

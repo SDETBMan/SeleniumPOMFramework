@@ -1,5 +1,6 @@
 package com.framework.pages;
 
+import io.appium.java_client.AppiumBy; // Added for cleaner mobile locators
 import io.appium.java_client.android.AndroidDriver;
 import io.appium.java_client.ios.IOSDriver;
 import org.openqa.selenium.By;
@@ -7,11 +8,12 @@ import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+
 import java.util.List;
 
 public class InventoryPage extends BasePage {
 
-    // Locators are now non-final so we can set them in the Constructor
+    // Dynamic Locators
     private By productsHeader;
     private By cartBadge;
     private By cartLink;
@@ -22,27 +24,27 @@ public class InventoryPage extends BasePage {
     }
 
     /**
-     *
      * Initialize locators based on the active Driver (Platform).
      */
     private void initLocators() {
-        if (driver instanceof AndroidDriver) {
-            // ANDROID NATIVE LOCATORS
-            productsHeader = By.xpath("//android.widget.TextView[@text='PRODUCTS']");
-            cartBadge      = By.xpath("//android.widget.TextView[@content-desc='test-Cart badge']");
-            cartLink       = By.xpath("//android.view.ViewGroup[@content-desc='test-Cart']");
-        }
-        else if (driver instanceof IOSDriver) {
-            // iOS NATIVE LOCATORS
-            productsHeader = By.id("PRODUCTS");
-            cartBadge      = By.id("test-Cart badge");
-            cartLink       = By.id("test-Cart");
-        }
-        else {
-            // WEB LOCATORS (Default)
+        boolean isNativeMobile = (driver instanceof AndroidDriver) || (driver instanceof IOSDriver);
+
+        if (isNativeMobile) {
+            // MOBILE (Native Accessibility IDs)
+            // Note: On Android, the header is often just text, so XPath is still best there.
+            if (driver instanceof AndroidDriver) {
+                productsHeader = By.xpath("//android.widget.TextView[@text='PRODUCTS']");
+            } else {
+                productsHeader = AppiumBy.accessibilityId("PRODUCTS");
+            }
+
+            cartBadge = AppiumBy.accessibilityId("test-Cart badge");
+            cartLink = AppiumBy.accessibilityId("test-Cart");
+        } else {
+            // WEB (Standard CSS)
             productsHeader = By.className("title");
-            cartBadge      = By.className("shopping_cart_badge");
-            cartLink       = By.className("shopping_cart_link");
+            cartBadge = By.className("shopping_cart_badge");
+            cartLink = By.className("shopping_cart_link");
         }
     }
 
@@ -77,19 +79,20 @@ public class InventoryPage extends BasePage {
 
     public void addToCart(String productName) {
         if (driver instanceof AndroidDriver || driver instanceof IOSDriver) {
-            // Mobile Interaction (Native App)
-            // Note: In a real app, we would need specific Accessibility IDs for each product
-            // For now, we are focusing on Login, so we skip the implementation details for mobile add-to-cart
-            System.out.println(">>> Mobile AddToCart not yet implemented");
+            // Mobile Interaction (Stubbed for now)
+            System.out.println("[WARN] Mobile AddToCart not yet implemented");
         } else {
-            // Web Interaction (JS Click)
+            // Web Interaction (JS Click + State Verification)
             String formattedName = productName.toLowerCase().replace(" ", "-");
             By addButtonLocator = By.id("add-to-cart-" + formattedName);
             By removeButtonLocator = By.id("remove-" + formattedName);
 
+            // 1. Force Click
             WebElement button = driver.findElement(addButtonLocator);
             JavascriptExecutor js = (JavascriptExecutor) driver;
             js.executeScript("arguments[0].click();", button);
+
+            // 2. Wait for "Remove" button (Confirms action success)
             waitForVisibility(removeButtonLocator);
         }
     }

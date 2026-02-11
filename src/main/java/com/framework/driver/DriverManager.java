@@ -2,32 +2,42 @@ package com.framework.driver;
 
 import org.openqa.selenium.WebDriver;
 
+/**
+ * DriverManager: Thread-Safe Driver Management.
+ * Uses ThreadLocal to ensure that each test thread (Parallel Execution)
+ * gets its own isolated WebDriver instance.
+ */
 public class DriverManager {
-    // 1. ThreadLocal ISOLATES the driver for each thread.
-    // This ensures there is only ONE container for threads to access.
-    // Without 'static', every call might try to access a different instance.
+
+    // ThreadLocal acts as a separate "box" for every thread.
+    // Thread 1 puts its Chrome Driver here. Thread 2 puts its Firefox Driver here.
+    // They never overlap.
     private static final ThreadLocal<WebDriver> dr = new ThreadLocal<>();
 
-    // 2. Private constructor to prevent instantiation
-    private DriverManager() {}
+    // Private constructor prevents anyone from saying "new DriverManager()"
+    private DriverManager() {
+    }
 
-    // 3. GET Method
+    /**
+     * Returns the WebDriver instance specific to the current thread.
+     */
     public static WebDriver getDriver() {
-        // DEBUG LOG
-        // System.out.println("DEBUG: Getting Driver... Value is: " + dr.get());
         return dr.get();
     }
 
-    // 4. SET Method
+    /**
+     * Stores the WebDriver instance for the current thread.
+     */
     public static void setDriver(WebDriver driverRef) {
-        // DEBUG LOG
-        System.out.println("DEBUG: Setting Driver in Manager: " + driverRef);
         dr.set(driverRef);
     }
 
-    // 5. UNLOAD Method
+    /**
+     * Cleans up the ThreadLocal reference to prevent memory leaks.
+     * Note: This does NOT quit the driver (BaseTest handles that).
+     * This just clears the "box" for the next test.
+     */
     public static void unload() {
-        System.out.println("DEBUG: Removing Driver from Manager.");
         dr.remove();
     }
 }

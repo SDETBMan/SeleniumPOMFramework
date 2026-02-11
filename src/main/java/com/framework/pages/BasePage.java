@@ -2,9 +2,7 @@ package com.framework.pages;
 
 import io.appium.java_client.android.AndroidDriver;
 import io.appium.java_client.ios.IOSDriver;
-import io.appium.java_client.pagefactory.AppiumFieldDecorator;
 import org.openqa.selenium.*;
-import org.openqa.selenium.support.PageFactory;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
@@ -17,18 +15,12 @@ public class BasePage {
     // Constructor
     public BasePage(WebDriver driver) {
         this.driver = driver;
+        // Increased to 20s for better stability on Cloud Grids
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(20));
-
-        // Initialize "Smart" Elements (PageFactory)
-        if (isMobile(driver)) {
-            PageFactory.initElements(new AppiumFieldDecorator(driver, Duration.ofSeconds(15)), this);
-        } else {
-            PageFactory.initElements(driver, this);
-        }
     }
 
     // ==================================================
-    // 1. MISSING METHOD
+    // 1. WAITS & VISIBILITY
     // ==================================================
 
     /**
@@ -38,7 +30,7 @@ public class BasePage {
         try {
             wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
         } catch (TimeoutException e) {
-            System.err.println("Element not visible: " + locator);
+            System.err.println("[ERROR] Element not visible: " + locator);
             throw e;
         }
     }
@@ -48,21 +40,22 @@ public class BasePage {
     // ==================================================
 
     /**
-     * Smart Click with Logging
+     * Smart Click with Logging & Highlighting
      */
     protected void click(By locator, String elementName) {
         try {
+            // Wait for clickable (more robust than just visibility)
             WebElement element = wait.until(ExpectedConditions.elementToBeClickable(locator));
 
             if (isMobile(driver)) {
                 System.out.println("[MOBILE-ACTION] Tapping on: " + elementName);
             } else {
-                System.out.println("[WEB-ACTION] Clicking on: " + elementName);
                 highlightElement(element);
+                System.out.println("[WEB-ACTION] Clicking on: " + elementName);
             }
             element.click();
         } catch (TimeoutException e) {
-            System.err.println("ERROR: Could not click " + elementName);
+            System.err.println("[ERROR] Could not click " + elementName);
             throw e;
         }
     }
@@ -74,7 +67,6 @@ public class BasePage {
 
     /**
      * Smart Typing with Keyboard Handling
-     * Renamed to 'enterText' to match the LoginPage code
      */
     protected void enterText(By locator, String text, String elementName) {
         try {
@@ -87,12 +79,11 @@ public class BasePage {
             }
             System.out.println("[" + getPlatform() + "] Entered '" + text + "' into: " + elementName);
         } catch (TimeoutException e) {
-            System.err.println("ERROR: Could not type into " + elementName);
+            System.err.println("[ERROR] Could not type into " + elementName);
             throw e;
         }
     }
 
-    // Overload: Allows calling enterText(locator, text) without a name string
     protected void enterText(By locator, String text) {
         enterText(locator, text, locator.toString());
     }
@@ -119,15 +110,21 @@ public class BasePage {
         if (driver instanceof AndroidDriver) {
             try {
                 ((AndroidDriver) driver).hideKeyboard();
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
     }
 
+    /**
+     * Visual Debugging: Draws a red border around the element before clicking.
+     * Only works on Web.
+     */
     private void highlightElement(WebElement element) {
         if (!isMobile(driver)) {
             try {
                 ((JavascriptExecutor) driver).executeScript("arguments[0].style.border='3px solid red'", element);
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
     }
 }

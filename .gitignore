@@ -1,14 +1,29 @@
-# --- .gitignore ---
+# --- .gitignore (Root) ---
 
-# 1. Ignore the Build Directory (Contains target/allure-results)
+# 1. SECURITY (Crucial)
+.env
+secret.properties
+
+# 2. Build & Compilation
 target/
+out/
+build/
+.mvn/
 
-# 2. Ignore IDE files (IntelliJ)
+# 3. IDE Files (Ignore the entire folder so the inner gitignore doesn't matter)
 .idea/
 *.iml
+*.iws
+*.ipr
 
-# 3. Ignore Allure System Files (The software binaries)
+# 4. Allure Reports
 .allure/
-
-# 4. Ignore Root Results (Just in case a default run happens)
 allure-results/
+allure-report/
+
+# 5. OS Generated Files
+.DS_Store
+Thumbs.db
+
+# 6. Logs
+*.log
