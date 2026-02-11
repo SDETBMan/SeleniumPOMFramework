@@ -5,8 +5,6 @@ import io.appium.java_client.android.AndroidDriver;
 import io.appium.java_client.ios.IOSDriver;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
-import java.util.List;
 
 public class CartPage extends BasePage {
 
@@ -30,12 +28,26 @@ public class CartPage extends BasePage {
         }
     }
 
-    public boolean isItemInCart(String productName) {
-        String xpath = "//div[@class='inventory_item_name' and text()='" + productName + "']";
-        List<WebElement> items = driver.findElements(By.xpath(xpath));
-        return !items.isEmpty();
+    /**
+     * Checks if the cart contains any items at all using the 'cartItems' locator.
+     */
+    public boolean isCartEmpty() {
+        return !isElementDisplayed(cartItems);
     }
 
+    /**
+     * Verifies a specific product is in the cart.
+     * Uses the inherited getText() which includes the 20s safety wait.
+     */
+    public boolean isItemInCart(String productName) {
+        String xpath = "//div[@class='inventory_item_name' and text()='" + productName + "']";
+        // Now using the improved BasePage getText to handle sync issues
+        return getText(By.xpath(xpath)).equalsIgnoreCase(productName);
+    }
+
+    /**
+     * Triggers the checkout flow.
+     */
     public void clickCheckout() {
         click(checkoutButton, "Checkout Button");
     }

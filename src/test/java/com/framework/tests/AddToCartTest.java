@@ -88,4 +88,22 @@ public class AddToCartTest extends BaseTest {
         // Step 3: Verify Cart is Empty again
         Assert.assertEquals(inventoryPage.getCartItemCount(), 0, "Cart count did not return to 0 after removal.");
     }
+
+    @Test(groups = {"regression", "web"})
+    public void testNavigateToCheckout() {
+        LoginPage loginPage = new LoginPage(DriverManager.getDriver());
+        InventoryPage inventoryPage = new InventoryPage(DriverManager.getDriver());
+
+        loginPage.login(ConfigReader.getProperty("app_username"), ConfigReader.getProperty("app_password"));
+        inventoryPage.addToCart("Sauce Labs Backpack");
+
+        CartPage cartPage = inventoryPage.goToCart();
+
+        // This call makes the method in CartPage turn BLACK (active)!
+        cartPage.clickCheckout();
+
+        // Assert we are now on the checkout info page
+        Assert.assertTrue(DriverManager.getDriver().getCurrentUrl().contains("checkout-step-one"),
+                "Failed to navigate to Checkout Step 1");
+    }
 }
