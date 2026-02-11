@@ -110,6 +110,9 @@ public class AddToCartTest extends BaseTest {
         // NEW SYNC: Wait for badge to show '1' so we know the session updated
         inventoryPage.waitForTextToBePresent(By.className("shopping_cart_badge"), "1");
 
+        // Give the UI half a second to settle before the navigation click
+        try { Thread.sleep(500); } catch (InterruptedException e) { e.printStackTrace(); }
+
         CartPage cartPage = inventoryPage.goToCart();
         cartPage.clickCheckout();
 
