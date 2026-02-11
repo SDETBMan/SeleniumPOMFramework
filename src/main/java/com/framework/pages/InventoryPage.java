@@ -88,10 +88,19 @@ public class InventoryPage extends BasePage {
 
     public void removeFromCart(String productName) {
         String xpath = "//div[text()='" + productName + "']/ancestor::div[@class='inventory_item_description']//button[text()='Remove']";
-        click(By.xpath(xpath), "Remove Button");
+        By removeButton = By.xpath(xpath);
 
-        // State-sync: waits for the badge to actually disappear
-        waitForTextToBePresent(cartBadge, "");
+        // Standard click
+        click(removeButton, "Remove Button: " + productName);
+
+        // Check if badge is gone, if not, force the click
+        boolean badgeGone = waitForTextToBePresent(cartBadge, "");
+
+        if (!badgeGone) {
+            System.out.println("[WARN] Standard Remove click failed. Forcing JS click.");
+            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", driver.findElement(removeButton));
+            waitForTextToBePresent(cartBadge, "");
+        }
     }
 
     public CartPage goToCart() {

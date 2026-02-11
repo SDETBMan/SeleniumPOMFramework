@@ -58,17 +58,17 @@ public class BaseTest {
 
         if (driver != null) {
             try {
-                // LEAD MOVE: Clear all session traces before quitting
                 driver.manage().deleteAllCookies();
-
-                // Clear browser storage to prevent "Ghost Items" in the cart
                 JavascriptExecutor js = (JavascriptExecutor) driver;
                 js.executeScript("window.localStorage.clear();");
                 js.executeScript("window.sessionStorage.clear();");
 
+                // CRITICAL: Small delay to let the browser commit the clear commands
+                Thread.sleep(100);
+
                 System.out.println("[TEARDOWN] Browser state cleared for Thread " + Thread.currentThread().getId());
             } catch (Exception e) {
-                // Silently fail if the browser session is already closed
+                // Silently fail if session is already closed
             } finally {
                 driver.quit();
                 DriverManager.unload();

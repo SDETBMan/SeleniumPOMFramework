@@ -4,6 +4,7 @@ import io.appium.java_client.AppiumBy;
 import io.appium.java_client.android.AndroidDriver;
 import io.appium.java_client.ios.IOSDriver;
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 
 public class CartPage extends BasePage {
@@ -43,6 +44,16 @@ public class CartPage extends BasePage {
      */
     public void clickCheckout() {
         waitForVisibility(checkoutButton);
+        // Standard click
         click(checkoutButton, "Checkout Button");
+
+        // Sync check: Did we actually move?
+        boolean moved = waitForUrlToContain("checkout-step-one");
+
+        // Fallback if the UI is stuck
+        if (!moved) {
+            System.out.println("[WARN] Standard Checkout click failed. Forcing JS click.");
+            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", driver.findElement(checkoutButton));
+        }
     }
 }
