@@ -12,10 +12,9 @@ public class BasePage {
     protected WebDriver driver;
     protected WebDriverWait wait;
 
-    // Constructor
     public BasePage(WebDriver driver) {
         this.driver = driver;
-        // Increased to 20s for better stability on Cloud Grids
+        // 20s timeout is the "sweet spot" for GitHub Actions and Remote Grids
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(20));
     }
 
@@ -23,15 +22,37 @@ public class BasePage {
     // 1. WAITS & VISIBILITY
     // ==================================================
 
-    /**
-     * Waits for an element to be visible. Used for assertions.
-     */
     protected void waitForVisibility(By locator) {
         try {
             wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
         } catch (TimeoutException e) {
-            System.err.println("[ERROR] Element not visible: " + locator);
+            System.err.println("[ERROR] Element not visible after 20s: " + locator);
             throw e;
+        }
+    }
+
+    /**
+     * Perfect for "Cart Count" assertions.
+     * Waits for the actual text value to change before proceeding.
+     */
+    protected boolean waitForTextToBePresent(By locator, String expectedText) {
+        try {
+            return wait.until(ExpectedConditions.textToBePresentInElementLocated(locator, expectedText));
+        } catch (TimeoutException e) {
+            System.err.println("[WARN] Expected text '" + expectedText + "' never appeared in: " + locator);
+            return false;
+        }
+    }
+
+    /**
+     * A "Safe" display check. Returns false instead of crashing if element is missing.
+     */
+    protected boolean isElementDisplayed(By locator) {
+        try {
+            wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
+            return true;
+        } catch (Exception e) {
+            return false;
         }
     }
 
@@ -39,12 +60,9 @@ public class BasePage {
     // 2. INTERACTION METHODS
     // ==================================================
 
-    /**
-     * Smart Click with Logging & Highlighting
-     */
     protected void click(By locator, String elementName) {
         try {
-            // Wait for clickable (more robust than just visibility)
+            // Wait for clickable ensures no "ElementClickIntercepted" errors
             WebElement element = wait.until(ExpectedConditions.elementToBeClickable(locator));
 
             if (isMobile(driver)) {
@@ -55,19 +73,15 @@ public class BasePage {
             }
             element.click();
         } catch (TimeoutException e) {
-            System.err.println("[ERROR] Could not click " + elementName);
+            System.err.println("[ERROR] Could not click " + elementName + " within timeout.");
             throw e;
         }
     }
 
-    // Overload: Allows calling click(locator) without a name string
     protected void click(By locator) {
         click(locator, locator.toString());
     }
 
-    /**
-     * Smart Typing with Keyboard Handling
-     */
     protected void enterText(By locator, String text, String elementName) {
         try {
             WebElement element = wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
@@ -88,8 +102,17 @@ public class BasePage {
         enterText(locator, text, locator.toString());
     }
 
+    /**
+     * The Flakiness Killer: Automatically waits for visibility before grabbing text.
+     * trim() prevents "Expected '1' but found ' 1 '" failures.
+     */
     protected String getText(By locator) {
-        return wait.until(ExpectedConditions.visibilityOfElementLocated(locator)).getText();
+        try {
+            return wait.until(ExpectedConditions.visibilityOfElementLocated(locator)).getText().trim();
+        } catch (Exception e) {
+            System.err.println("[ERROR] Failed to get text from locator: " + locator);
+            return "";
+        }
     }
 
     // ==================================================
@@ -110,21 +133,15 @@ public class BasePage {
         if (driver instanceof AndroidDriver) {
             try {
                 ((AndroidDriver) driver).hideKeyboard();
-            } catch (Exception ignored) {
-            }
+            } catch (Exception ignored) {}
         }
     }
 
-    /**
-     * Visual Debugging: Draws a red border around the element before clicking.
-     * Only works on Web.
-     */
     private void highlightElement(WebElement element) {
         if (!isMobile(driver)) {
             try {
                 ((JavascriptExecutor) driver).executeScript("arguments[0].style.border='3px solid red'", element);
-            } catch (Exception ignored) {
-            }
+            } catch (Exception ignored) {}
         }
     }
 }
