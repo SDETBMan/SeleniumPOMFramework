@@ -6,6 +6,7 @@ import com.framework.pages.CartPage;
 import com.framework.pages.InventoryPage;
 import com.framework.pages.LoginPage;
 import com.framework.utils.ConfigReader;
+import org.openqa.selenium.By;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -96,10 +97,12 @@ public class AddToCartTest extends BaseTest {
         loginPage.login(ConfigReader.getProperty("app_username"), ConfigReader.getProperty("app_password"));
         inventoryPage.addToCart("Sauce Labs Backpack");
 
+        // NEW SYNC: Wait for badge to show '1' so we know the session updated
+        inventoryPage.waitForTextToBePresent(By.className("shopping_cart_badge"), "1");
+
         CartPage cartPage = inventoryPage.goToCart();
         cartPage.clickCheckout();
 
-        /// Replace the direct Assert with a synchronized wait
         boolean isOnCheckoutPage = cartPage.waitForUrlToContain("checkout-step-one");
         Assert.assertTrue(isOnCheckoutPage, "Failed to navigate to Checkout Step 1. Current URL: " + DriverManager.getDriver().getCurrentUrl());
     }

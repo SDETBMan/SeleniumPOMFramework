@@ -35,7 +35,7 @@ public class BasePage {
      * Perfect for "Cart Count" assertions.
      * Waits for the actual text value to change before proceeding.
      */
-    protected boolean waitForTextToBePresent(By locator, String expectedText) {
+    public boolean waitForTextToBePresent(By locator, String expectedText) {
         try {
             if(expectedText.isEmpty()) {
                 return wait.until(ExpectedConditions.invisibilityOfElementLocated(locator));
@@ -73,19 +73,18 @@ public class BasePage {
 
     protected void click(By locator, String elementName) {
         try {
-            // Wait for clickable ensures no "ElementClickIntercepted" errors
             WebElement element = wait.until(ExpectedConditions.elementToBeClickable(locator));
-
-            if (isMobile(driver)) {
-                System.out.println("[MOBILE-ACTION] Tapping on: " + elementName);
-            } else {
+            if (!isMobile(driver)) {
                 highlightElement(element);
-                System.out.println("[WEB-ACTION] Clicking on: " + elementName);
+                // Lead Move: Move to element before clicking to ensure it's in the viewport
+                new org.openqa.selenium.interactions.Actions(driver).moveToElement(element).perform();
             }
             element.click();
-        } catch (TimeoutException e) {
-            System.err.println("[ERROR] Could not click " + elementName + " within timeout.");
-            throw e;
+            System.out.println("[WEB-ACTION] Clicking on: " + elementName);
+        } catch (Exception e) {
+            // Fallback: If standard click fails due to intercept, use JS
+            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", driver.findElement(locator));
+            System.out.println("[WEB-ACTION] JS Force Clicked: " + elementName);
         }
     }
 

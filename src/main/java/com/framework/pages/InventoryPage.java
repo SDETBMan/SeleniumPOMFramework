@@ -96,6 +96,8 @@ public class InventoryPage extends BasePage {
 
     public CartPage goToCart() {
         click(cartLink, "Shopping Cart Icon");
+        // Ensure we are actually on the cart page before proceeding
+        waitForUrlToContain("cart.html");
         return new CartPage(driver);
     }
 }

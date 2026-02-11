@@ -34,7 +34,7 @@ public class CartPage extends BasePage {
      */
     public boolean isItemInCart(String productName) {
         // Use a locator that finds the text anywhere in the name div
-        String xpath = String.format("//div[@class='inventory_item_name' and contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '%s')]", productName.toLowerCase());
+        String xpath = String.format("//div[@class='inventory_item_name' and contains(normalize-space(text()), '%s')]", productName);
         return isElementDisplayed(By.xpath(xpath));
     }
 
