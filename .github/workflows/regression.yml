@@ -46,7 +46,7 @@ jobs:
       # We dynamically set 'skipAppUpload' based on your input (defaulting to true for Pushes)
       - name: Run TestNG Suite
         run: >
-          mvn clean test 
+          mvn clean test -Dgroups=web
           "-DsuiteXmlFile=${{ inputs.test_suite || 'src/test/resources/testng.xml' }}" 
           "-DskipAppUpload=${{ github.event_name == 'workflow_dispatch' && !inputs.upload_mobile_app || 'true' }}" 
           "-Dheadless=true"

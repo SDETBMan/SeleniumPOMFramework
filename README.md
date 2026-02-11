@@ -11,10 +11,12 @@ Designed for stability, scalability, and modern CI/CD pipelines, featuring **Sel
 * **Polymorphic Architecture:** Unified Page Object Model (POM) that dynamically detects and handles Web, Android, and iOS logic within the same class.
 * **Self-Healing Automation:** Integrated **Healenium** to automatically recover from `NoSuchElementException` by analyzing the DOM tree at runtime.
 * **AI-Driven Testing:** Includes an `AiHelper` utility (OpenAI integration) to dynamically generate robust test data and analyze failure patterns.
+* **Fluent Interface Pattern:** Uses method chaining where page actions return the next Page Object, creating highly readable and maintainable test scripts.
 * **Thread-Safety:** Implements `ThreadLocal` driver management for 100% isolation during parallel execution.
 * **Dockerized Infrastructure:** Full `docker-compose` setup for a **Selenium Grid** combined with the **Healenium Backend**.
 * **Full-Stack Validation:** Integrated REST Assured for API health checks and JDBC for backend database verification.
-* **Performance Gatekeeping:** Integrated Apache JMeter via Maven to validate system throughput and latency within the CI/CD pipeline.
+* **Shift-Left Performance:** Integrated Apache JMeter to validate system throughput and latency within the CI/CD pipeline.
+* **Utility Unit Testing:** Demonstrates "Test Pyramid" adherence by unit testing core utility logic (e.g., StringUtils) independently of the UI.
 * **CI/CD Ready:** Configured for GitHub Actions with Headless execution.
 
 ---

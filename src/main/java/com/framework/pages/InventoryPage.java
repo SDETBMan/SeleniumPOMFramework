@@ -1,6 +1,6 @@
 package com.framework.pages;
 
-import io.appium.java_client.AppiumBy; // Added for cleaner mobile locators
+import io.appium.java_client.AppiumBy;
 import io.appium.java_client.android.AndroidDriver;
 import io.appium.java_client.ios.IOSDriver;
 import org.openqa.selenium.By;
@@ -11,9 +11,11 @@ import org.openqa.selenium.WebElement;
 
 import java.util.List;
 
+/**
+ * InventoryPage: Manages product selection and cart interactions for Web and Mobile.
+ */
 public class InventoryPage extends BasePage {
 
-    // Dynamic Locators
     private By productsHeader;
     private By cartBadge;
     private By cartLink;
@@ -23,25 +25,18 @@ public class InventoryPage extends BasePage {
         initLocators();
     }
 
-    /**
-     * Initialize locators based on the active Driver (Platform).
-     */
     private void initLocators() {
         boolean isNativeMobile = (driver instanceof AndroidDriver) || (driver instanceof IOSDriver);
 
         if (isNativeMobile) {
-            // MOBILE (Native Accessibility IDs)
-            // Note: On Android, the header is often just text, so XPath is still best there.
             if (driver instanceof AndroidDriver) {
                 productsHeader = By.xpath("//android.widget.TextView[@text='PRODUCTS']");
             } else {
                 productsHeader = AppiumBy.accessibilityId("PRODUCTS");
             }
-
             cartBadge = AppiumBy.accessibilityId("test-Cart badge");
             cartLink = AppiumBy.accessibilityId("test-Cart");
         } else {
-            // WEB (Standard CSS)
             productsHeader = By.className("title");
             cartBadge = By.className("shopping_cart_badge");
             cartLink = By.className("shopping_cart_link");
@@ -63,10 +58,7 @@ public class InventoryPage extends BasePage {
 
     public int getCartItemCount() {
         List<WebElement> badges = driver.findElements(cartBadge);
-        if (badges.isEmpty()) {
-            return 0;
-        }
-        return Integer.parseInt(badges.get(0).getText());
+        return badges.isEmpty() ? 0 : Integer.parseInt(badges.get(0).getText());
     }
 
     public void waitForCartBadge() {
@@ -79,25 +71,33 @@ public class InventoryPage extends BasePage {
 
     public void addToCart(String productName) {
         if (driver instanceof AndroidDriver || driver instanceof IOSDriver) {
-            // Mobile Interaction (Stubbed for now)
             System.out.println("[WARN] Mobile AddToCart not yet implemented");
         } else {
-            // Web Interaction (JS Click + State Verification)
             String formattedName = productName.toLowerCase().replace(" ", "-");
             By addButtonLocator = By.id("add-to-cart-" + formattedName);
             By removeButtonLocator = By.id("remove-" + formattedName);
 
-            // 1. Force Click
             WebElement button = driver.findElement(addButtonLocator);
-            JavascriptExecutor js = (JavascriptExecutor) driver;
-            js.executeScript("arguments[0].click();", button);
+            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", button);
 
-            // 2. Wait for "Remove" button (Confirms action success)
             waitForVisibility(removeButtonLocator);
         }
     }
 
-    public void goToCart() {
+    public void removeFromCart(String productName) {
+        // Updated XPath with a relative child selector (.) for better precision
+        String xpath = "//div[text()='" + productName + "']/ancestor::div[@class='inventory_item_description']//button[text()='Remove']";
+
+        // Lead-level: Wait for the specific dynamic element to appear
+        waitForVisibility(By.xpath(xpath));
+
+        WebElement removeButton = driver.findElement(By.xpath(xpath));
+        removeButton.click();
+        System.out.println("[LOG] Removed item from cart: " + productName);
+    }
+
+    public CartPage goToCart() {
         click(cartLink, "Shopping Cart Icon");
+        return new CartPage(driver);
     }
 }

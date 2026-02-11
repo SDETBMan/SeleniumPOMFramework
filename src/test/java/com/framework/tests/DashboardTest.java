@@ -4,52 +4,80 @@ import com.framework.base.BaseTest;
 import com.framework.driver.DriverManager;
 import com.framework.pages.DashboardPage;
 import com.framework.pages.LoginPage;
+import com.framework.utils.ConfigReader;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-/**
- * DashboardTest: Validates post-login navigation, UI elements, and the logout lifecycle.
- * Utilizes DataProviders for broad user-persona coverage.
- */
 public class DashboardTest extends BaseTest {
 
-    @Test(groups = "regression", dataProvider = "loginData")
+    // ---------------------------------------------------------
+    // DATA-DRIVEN TEST (Regression)
+    // Runs 3 times: Standard, Visual Bug User, Performance Glitch User
+    // ---------------------------------------------------------
+    @Test(groups = {"regression", "web"}, dataProvider = "loginData")
     public void testUserCanAccessDashboard(String username, String password) {
         LoginPage loginPage = new LoginPage(DriverManager.getDriver());
         DashboardPage dashboardPage = new DashboardPage(DriverManager.getDriver());
 
-        System.out.println("[INFO] Executing Dashboard access test for user persona: " + username);
+        System.out.println("[INFO] Testing Persona: " + username);
 
         // 1. Unified Login
         loginPage.login(username, password);
 
         // 2. Functional UI Assertions
         Assert.assertTrue(dashboardPage.isCartIconDisplayed(),
-                "CRITICAL: Shopping cart icon missing on Dashboard for user: " + username);
+                "CRITICAL: Shopping cart icon missing for user: " + username);
 
         String headerText = dashboardPage.getWelcomeMessageText();
-        System.out.println("[INFO] Dashboard Header captured: " + headerText);
 
-        // Products is the standard header for Swag Labs (Web and Mobile)
+        // Products is the standard header for Swag Labs
         Assert.assertTrue(headerText.equalsIgnoreCase("Products"),
-                "VALIDATION FAILED: Dashboard header did not match expected 'Products'. Found: " + headerText);
+                "VALIDATION FAILED: Header mismatch. Found: " + headerText);
     }
 
-    @Test(groups = "regression")
+    // ---------------------------------------------------------
+    // HAPPY PATH (Smoke): Logout Flow
+    // ---------------------------------------------------------
+    @Test(groups = {"smoke", "regression", "web"})
     public void testLogoutFlow() {
         LoginPage loginPage = new LoginPage(DriverManager.getDriver());
         DashboardPage dashboardPage = new DashboardPage(DriverManager.getDriver());
 
         // 1. Establish session
-        loginPage.login("standard_user", "secret_sauce");
+        loginPage.login(ConfigReader.getProperty("app_username"), ConfigReader.getProperty("app_password"));
 
-        // 2. Execute Logout (Handles both Web JS-Menu and Mobile Native-Menu)
+        // 2. Execute Logout
         dashboardPage.clickLogoutButton();
 
-        // 3. Verify Session Termination (Returning to Login state)
+        // 3. Verify Session Termination
         Assert.assertTrue(loginPage.isLoginButtonDisplayed(),
-                "SESSION ERROR: Login button not visible after logout sequence.");
+                "SESSION ERROR: Login button not visible after logout.");
+    }
+
+    // ---------------------------------------------------------
+    // NEGATIVE / SECURITY TEST (Regression)
+    // Can a user bypass login by typing the URL directly?
+    // ---------------------------------------------------------
+    @Test(groups = {"regression", "web", "security"})
+    public void testDirectAccessWithoutLogin() {
+        LoginPage loginPage = new LoginPage(DriverManager.getDriver());
+
+        // 1. Try to force navigate to Dashboard URL without logging in
+        // Note: We need to use the full URL from config + the endpoint
+        String dashboardUrl = "https://www.saucedemo.com/inventory.html";
+        DriverManager.getDriver().get(dashboardUrl);
+
+        // 2. Assert: Application should kick us back to Login
+        // Note: SwagLabs usually displays an error "You can only access... when you are logged in."
+        Assert.assertTrue(loginPage.isLoginButtonDisplayed(),
+                "SECURITY FAILURE: Unauthenticated user was able to access Dashboard!");
+
+        // Optional: specific error message check
+        String error = loginPage.getErrorMessage();
+        if(!error.isEmpty()) {
+            Assert.assertTrue(error.contains("only access"), "Unexpected error message: " + error);
+        }
     }
 
     /**
@@ -59,7 +87,9 @@ public class DashboardTest extends BaseTest {
     public Object[][] getLoginData() {
         return new Object[][]{
                 {"standard_user", "secret_sauce"},
+                // "problem_user" has broken images (good for checking resilience)
                 {"problem_user", "secret_sauce"},
+                // "performance_glitch_user" takes 5 seconds to load (good for checking timeouts)
                 {"performance_glitch_user", "secret_sauce"}
         };
     }

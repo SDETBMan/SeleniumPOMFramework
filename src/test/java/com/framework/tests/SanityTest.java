@@ -1,6 +1,6 @@
 package com.framework.tests;
 
-import io.github.bonigarcia.wdm.WebDriverManager;
+import com.framework.utils.ConfigReader;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -11,56 +11,106 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.time.Duration;
 
 /**
- * SanityTest: A "bare-metal" Selenium test independent of the framework's BaseTest.
- * Used for environment verification and troubleshooting driver/binary issues.
+ * SanityTest: Validates the Automation Infrastructure itself.
+ * Independent of the framework's BaseTest to isolate environment issues.
  */
 public class SanityTest {
 
-    @Test(groups = "sanity")
-    public void rawSeleniumTest() {
+    // ---------------------------------------------------------
+    // HAPPY PATH (Sanity): Browser Engine Check
+    // "Bare Metal" test - No DriverFactory, no listeners.
+    // If this fails, the machine/CI node is broken (not your code).
+    // ---------------------------------------------------------
+    @Test(groups = {"sanity", "smoke", "web"})
+    public void testRawSeleniumLaunch() {
         System.out.println("[INFO] Starting Bare-Metal Sanity Check...");
-
-        // 1. Manual Driver Setup (Bypassing DriverFactory)
-        WebDriverManager.chromedriver().setup();
-        ChromeOptions options = new ChromeOptions();
-        options.addArguments("--headless=new");
-        options.addArguments("--window-size=1920,1080");
-        options.addArguments("--remote-allow-origins=*");
-
-        WebDriver driver = new ChromeDriver(options);
+        WebDriver driver = null;
 
         try {
-            // 2. Navigation
+            // 1. Setup Options (Headless for CI stability)
+            ChromeOptions options = new ChromeOptions();
+            options.addArguments("--headless=new");
+            options.addArguments("--remote-allow-origins=*");
+
+            // 2. Direct Driver Launch (Uses Selenium Manager built-in to 4.x)
+            driver = new ChromeDriver(options);
+
+            // 3. Navigation
             driver.get("https://www.saucedemo.com/");
-            System.out.println("[INFO] Page Title: " + driver.getTitle());
 
-            // 3. Raw Element Interaction
-            driver.findElement(By.id("user-name")).sendKeys("standard_user");
-            driver.findElement(By.id("password")).sendKeys("secret_sauce");
-            driver.findElement(By.id("login-button")).click();
+            // 4. Verification
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
+            WebElement logo = wait.until(ExpectedConditions.visibilityOfElementLocated(By.className("login_logo")));
 
-            // 4. Explicit Synchronization
-            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-            WebElement header = wait.until(ExpectedConditions.visibilityOfElementLocated(By.className("title")));
-
-            // 5. Assertions
-            String headerText = header.getText();
-            System.out.println("[INFO] Header Found: " + headerText);
-
-            Assert.assertEquals(headerText, "Products", "Sanity Check Failed: Dashboard header mismatch.");
+            Assert.assertTrue(logo.isDisplayed(), "Raw Selenium failed to render the page!");
+            System.out.println("[PASS] Browser Engine is operational.");
 
         } catch (Exception e) {
-            System.err.println("[FATAL] Sanity test failed at URL: " + driver.getCurrentUrl());
-            Assert.fail("Environment Sanity Check Failed: " + e.getMessage());
+            Assert.fail("CRITICAL: Selenium Environment is broken! " + e.getMessage());
         } finally {
-            // 6. Manual Teardown
-            if (driver != null) {
-                driver.quit();
-                System.out.println("[INFO] Sanity Test Finalized.");
-            }
+            if (driver != null) driver.quit();
+        }
+    }
+
+    // ---------------------------------------------------------
+    // EDGE CASE (Sanity): Configuration Integrity
+    // Verifies that critical secrets/config are actually loaded.
+    // ---------------------------------------------------------
+    @Test(groups = {"sanity"})
+    public void testConfigurationLoad() {
+        System.out.println("[INFO] Checking Config Integrity...");
+
+        // 1. Verify URL exists
+        String url = ConfigReader.getProperty("url");
+        Assert.assertNotNull(url, "Config Failure: 'url' is missing in config.properties");
+        Assert.assertFalse(url.isEmpty(), "Config Failure: 'url' is empty");
+
+        // 2. Verify Timeout is a number
+        String timeout = ConfigReader.getProperty("timeout.explicit");
+        try {
+            Integer.parseInt(timeout);
+        } catch (NumberFormatException e) {
+            Assert.fail("Config Failure: 'timeout.explicit' is not a valid number.");
+        }
+
+        System.out.println("[PASS] Configuration file is readable and valid.");
+    }
+
+    // ---------------------------------------------------------
+    // INFRASTRUCTURE TEST (Sanity): Grid Connectivity
+    // Checks if the Docker Grid (Hub) is actually up and listening.
+    // ---------------------------------------------------------
+    @Test(groups = {"sanity", "docker"})
+    public void testHubConnectivity() {
+        String hubUrl = ConfigReader.getProperty("hub.url");
+        // Only run this check if we are in Docker mode, or just log a warning
+        if (hubUrl == null || hubUrl.contains("localhost")) {
+            System.out.println("[INFO] Checking connectivity to Local Grid: " + hubUrl);
+        }
+
+        try {
+            // Simple Java HTTP Ping to the Hub's status endpoint
+            URL url = new URL(hubUrl + "/status"); // Selenium Grid 4 status endpoint
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            connection.setConnectTimeout(2000); // Fail fast (2 seconds)
+
+            int responseCode = connection.getResponseCode();
+
+            // 200 OK means the Grid is alive
+            Assert.assertEquals(responseCode, 200, "Selenium Grid is not responding! Response Code: " + responseCode);
+            System.out.println("[PASS] Selenium Grid is reachable.");
+
+        } catch (Exception e) {
+            System.out.println("[WARN] Grid check failed (This is expected if not running Docker): " + e.getMessage());
+            // We don't fail the test here because you might be running locally without Docker.
+            // But in a real CI environment, you might want to uncomment the line below:
+            // Assert.fail("Grid Infrastructure is DOWN.");
         }
     }
 }

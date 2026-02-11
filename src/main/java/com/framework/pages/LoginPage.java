@@ -26,13 +26,12 @@ public class LoginPage extends BasePage {
 
         if (isNativeMobile) {
             // SWAG LABS NATIVE APP LOCATORS (Accessibility IDs)
-            // Note: AppiumBy requires java-client 8.x or higher (which you have)
             usernameField = AppiumBy.accessibilityId("test-Username");
             passwordField = AppiumBy.accessibilityId("test-Password");
             loginButton = AppiumBy.accessibilityId("test-LOGIN");
             errorMessage = AppiumBy.accessibilityId("test-Error message");
         } else {
-            // SWAG LABS WEB LOCATORS (Standard IDs)
+            // SWAG LABS WEB LOCATORS (Standard IDs/CSS)
             usernameField = By.id("user-name");
             passwordField = By.id("password");
             loginButton = By.id("login-button");
@@ -44,26 +43,27 @@ public class LoginPage extends BasePage {
     // ACTIONS
     // ==================================================
 
+    /**
+     * Performs a unified login action.
+     */
     public void login(String username, String password) {
+        // We use the 3-parameter version to maintain descriptive logs.
         enterText(usernameField, username, "Username Field");
         enterText(passwordField, password, "Password Field");
         click(loginButton, "Login Button");
     }
 
     /**
-     * Robust Error Message Retrieval.
-     * Handles Web (Text), Android (Child TextView), and iOS (Label Attribute).
+     * Robust Error Message Retrieval for Web and Mobile platforms.
      */
     public String getErrorMessage() {
         // 1. Try standard getText (Works for Web)
         String text = getText(errorMessage);
 
-        // 2. Mobile Fallback Logic
-        // Often the Accessibility ID is on a Container, so basic .getText() returns nothing.
+        // 2. Mobile Fallback Logic for nested or attributed text.
         if (text == null || text.isEmpty()) {
             if (driver instanceof AndroidDriver) {
                 try {
-                    // Find the child TextView inside the error container
                     text = driver.findElement(errorMessage)
                             .findElement(By.className("android.widget.TextView"))
                             .getText();
@@ -72,7 +72,6 @@ public class LoginPage extends BasePage {
                 }
             } else if (driver instanceof IOSDriver) {
                 try {
-                    // iOS text is often hidden in 'label' or 'name' attributes
                     text = driver.findElement(errorMessage).getAttribute("label");
                     if (text == null || text.isEmpty()) {
                         text = driver.findElement(errorMessage).getAttribute("name");
@@ -85,6 +84,9 @@ public class LoginPage extends BasePage {
         return text;
     }
 
+    /**
+     * Verifies if the login button is visible, used for session state validation.
+     */
     public boolean isLoginButtonDisplayed() {
         try {
             return driver.findElement(loginButton).isDisplayed();

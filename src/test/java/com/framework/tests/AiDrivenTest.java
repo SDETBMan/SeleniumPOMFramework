@@ -9,23 +9,27 @@ import org.testng.annotations.Test;
 
 public class AiDrivenTest extends BaseTest {
 
-    @Test(groups = "ai")
+    @Test(groups = {"ai", "web"})
     public void testLoginWithAiGeneratedData() {
         LoginPage loginPage = new LoginPage(DriverManager.getDriver());
 
-        // 1. Ask "AI" to generate diverse test data
-        // This helps find edge cases developers didn't think of
+        // 1. Ask "AI" to generate diverse (invalid) test data
+        // We don't need ConfigReader because we are CREATING data, not reading it.
         String aiUsername = AiHelper.generateTestData("Generate a valid looking email address");
         String aiPassword = AiHelper.generateTestData("Generate a complex password");
 
-        System.out.println("AI Generated Credentials: " + aiUsername + " / " + aiPassword);
+        System.out.println("[AI] Testing with generated credentials: " + aiUsername);
 
-        // 2. Use the data
-        loginPage.login("standard_user", "secret_sauce");
+        // 2. Attempt Login with AI Data
+        loginPage.login(aiUsername, aiPassword);
 
-        // 3. Verify the app handles this "unknown user" correctly
+        // 3. Assertion: Negative Test
+        // We do NOT expect to see the InventoryPage. We expect an ERROR.
         String error = loginPage.getErrorMessage();
+
         Assert.assertTrue(error.contains("Username and password do not match"),
-                "App did not handle AI-generated random user correctly!");
+                "FAILURE: App accepted invalid AI data or crashed! Error displayed: " + error);
+
+        System.out.println("[PASS] App correctly rejected invalid AI credentials.");
     }
 }

@@ -9,9 +9,11 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 
+/**
+ * DashboardPage: Handles post-login interactions for both Web and Mobile platforms.
+ */
 public class DashboardPage extends BasePage {
 
-    // 1. DYNAMIC LOCATORS (Initialized in Constructor)
     private By cartIcon;
     private By menuButton;
     private By logoutLink;
@@ -23,7 +25,7 @@ public class DashboardPage extends BasePage {
     }
 
     /**
-     * Initialize locators based on Platform (Web vs. Mobile).
+     * Initializes locators dynamically based on the active platform.
      */
     private void initLocators() {
         boolean isNativeMobile = (driver instanceof AndroidDriver) || (driver instanceof IOSDriver);
@@ -33,7 +35,6 @@ public class DashboardPage extends BasePage {
             cartIcon = AppiumBy.accessibilityId("test-Cart");
             menuButton = AppiumBy.accessibilityId("test-Menu");
             logoutLink = AppiumBy.accessibilityId("test-LOGOUT");
-            // Android title is usually a TextView "PRODUCTS"
             pageTitle = By.xpath("//android.widget.TextView[@text='PRODUCTS']");
         } else {
             // WEB (Standard CSS/ID)
@@ -45,9 +46,12 @@ public class DashboardPage extends BasePage {
     }
 
     // ==================================================
-    // 2. ACTION METHODS
+    // ACTION METHODS
     // ==================================================
 
+    /**
+     * Verifies visibility of the Shopping Cart icon.
+     */
     public boolean isCartIconDisplayed() {
         try {
             return driver.findElement(cartIcon).isDisplayed();
@@ -56,28 +60,35 @@ public class DashboardPage extends BasePage {
         }
     }
 
+    /**
+     * Executes the logout sequence, handling platform-specific menu animations.
+     */
     public void clickLogoutButton() {
         // 1. Open Menu
         click(menuButton, "Hamburger Menu");
 
-        // 2. Click Logout (Platform Specific Logic)
+        // 2. Platform-Specific Click Logic
         if (driver instanceof AndroidDriver || driver instanceof IOSDriver) {
-            // Mobile: Just tap it
+            // Mobile: Wait for menu transition before clicking
+            waitForVisibility(logoutLink);
             click(logoutLink, "Logout Link");
         } else {
-            // Web: Handle Animation Lag with JS Force Click
+            // Web: Use JavascriptExecutor to bypass potential animation overlays
             try {
                 WebElement logoutBtn = wait.until(ExpectedConditions.presenceOfElementLocated(logoutLink));
                 ((JavascriptExecutor) driver).executeScript("arguments[0].click();", logoutBtn);
-                System.out.println("[WEB-ACTION] Force Clicked: Logout Link (JS)");
+                System.out.println("[WEB-ACTION] Force Clicked Logout via JS");
             } catch (Exception e) {
-                // Fallback to standard click if JS fails
-                click(logoutLink, "Logout Link");
+                click(logoutLink, "Logout Link (Fallback)");
             }
         }
     }
 
+    /**
+     * Retrieves the primary header/welcome text from the dashboard.
+     */
     public String getWelcomeMessageText() {
+        waitForVisibility(pageTitle);
         return getText(pageTitle);
     }
 }
