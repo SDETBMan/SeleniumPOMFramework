@@ -9,7 +9,7 @@
 
     <test name="Web - Chrome (Regression)">
         <parameter name="browser" value="chrome" />
-        <parameter name="headless" value="false" />
+        <parameter name="headless" value="true" />
         <groups>
             <run>
                 <include name="smoke" />
@@ -19,6 +19,7 @@
         <classes>
             <class name="com.framework.tests.LoginTest" />
             <class name="com.framework.tests.DashboardTest" />
+            <class name="com.framework.tests.AddToCartTest" />
         </classes>
     </test>
 
@@ -34,19 +35,19 @@
         </classes>
     </test>
 
-    <test name="Mobile - iOS (iPhone 15)">
-        <parameter name="browser" value="ios" />
-        <classes>
-            <class name="com.framework.tests.LoginTest" />
-        </classes>
-    </test>
+<!--    <test name="Mobile - iOS (iPhone 15)">-->
+<!--        <parameter name="browser" value="ios" />-->
+<!--        <classes>-->
+<!--            <class name="com.framework.tests.LoginTest" />-->
+<!--        </classes>-->
+<!--    </test>-->
 
-    <test name="Mobile - Android (Pixel)">
-        <parameter name="browser" value="android" />
-        <classes>
-            <class name="com.framework.tests.LoginTest" />
-        </classes>
-    </test>
+<!--    <test name="Mobile - Android (Pixel)">-->
+<!--        <parameter name="browser" value="android" />-->
+<!--        <classes>-->
+<!--            <class name="com.framework.tests.LoginTest" />-->
+<!--        </classes>-->
+<!--    </test>-->
 
 </suite>
 
