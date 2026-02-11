@@ -33,7 +33,6 @@ public class AddToCartTest extends BaseTest {
         Assert.assertEquals(inventoryPage.getCartItemCount(), 1, "Inventory page badge did not update.");
 
         // Step 5: Navigation - Move to Cart Page
-        // This is where we use the method we just fixed!
         CartPage cartPage = inventoryPage.goToCart();
 
         // Step 6: Final Validation - Verify item is actually in the cart list
@@ -82,7 +81,7 @@ public class AddToCartTest extends BaseTest {
         inventoryPage.addToCart("Sauce Labs Fleece Jacket");
         Assert.assertEquals(inventoryPage.getCartItemCount(), 1, "Failed to add item initially.");
 
-        // Step 2: Remove Item (You might need to add this method to InventoryPage!)
+        // Step 2: Remove Item
         inventoryPage.removeFromCart("Sauce Labs Fleece Jacket");
 
         // Step 3: Verify Cart is Empty again
@@ -99,7 +98,7 @@ public class AddToCartTest extends BaseTest {
 
         CartPage cartPage = inventoryPage.goToCart();
 
-        // This call makes the method in CartPage turn BLACK (active)!
+
         cartPage.clickCheckout();
 
         // Assert we are now on the checkout info page

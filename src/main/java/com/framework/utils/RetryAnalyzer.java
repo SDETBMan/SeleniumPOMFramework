@@ -10,7 +10,7 @@ import org.testng.ITestResult;
 public class RetryAnalyzer implements IRetryAnalyzer {
     private int count = 0;
 
-    // We limit to 1 retry to keep execution times efficient.
+    // I limit to 1 retry to keep execution times efficient.
     private static final int MAX_RETRY_COUNT = 1;
 
     @Override

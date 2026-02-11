@@ -86,7 +86,7 @@ public class DriverFactory {
          */
         if ("cloud".equalsIgnoreCase(mode)) {
             // --- SAUCE LABS CLOUD CONFIGURATION ---
-            // Matches the secrets used in your GitHub Actions (.github/workflows/regression.yml)
+            // Matches the secrets used in my GitHub Actions (.github/workflows/regression.yml)
             String username = System.getenv("SAUCE_USERNAME");
             String accessKey = System.getenv("SAUCE_ACCESS_KEY");
             String sauceUrl = "https://" + username + ":" + accessKey + "@ondemand.us-west-1.saucelabs.com:443/wd/hub";

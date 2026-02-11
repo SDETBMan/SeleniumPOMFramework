@@ -1,6 +1,5 @@
 package com.framework.api;
 
-import com.framework.utils.ConfigReader;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import org.testng.Assert;
@@ -8,7 +7,7 @@ import org.testng.annotations.Test;
 
 /**
  * UserApiTest: Validates backend service health and data integrity.
- * Demonstrates proficiency in REST API automation and integration testing.
+ *
  */
 public class UserApiTest {
 

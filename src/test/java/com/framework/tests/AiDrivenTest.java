@@ -14,7 +14,6 @@ public class AiDrivenTest extends BaseTest {
         LoginPage loginPage = new LoginPage(DriverManager.getDriver());
 
         // 1. Ask "AI" to generate diverse (invalid) test data
-        // We don't need ConfigReader because we are CREATING data, not reading it.
         String aiUsername = AiHelper.generateTestData("Generate a valid looking email address");
         String aiPassword = AiHelper.generateTestData("Generate a complex password");
 
@@ -24,7 +23,6 @@ public class AiDrivenTest extends BaseTest {
         loginPage.login(aiUsername, aiPassword);
 
         // 3. Assertion: Negative Test
-        // We do NOT expect to see the InventoryPage. We expect an ERROR.
         String error = loginPage.getErrorMessage();
 
         Assert.assertTrue(error.contains("Username and password do not match"),

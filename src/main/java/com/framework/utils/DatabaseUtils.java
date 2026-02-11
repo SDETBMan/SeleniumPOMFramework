@@ -2,6 +2,8 @@ package com.framework.utils;
 
 import java.sql.*;
 
+// TODO: Integrate with User Management DB once environment is available
+
 /**
  * DatabaseUtils: Provides methods for interacting with SQL databases.
  * Enables Backend-to-Frontend data validation and dynamic test data sourcing.

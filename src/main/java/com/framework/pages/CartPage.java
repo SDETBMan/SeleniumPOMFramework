@@ -29,20 +29,12 @@ public class CartPage extends BasePage {
     }
 
     /**
-     * Checks if the cart contains any items at all using the 'cartItems' locator.
-     */
-    public boolean isCartEmpty() {
-        return !isElementDisplayed(cartItems);
-    }
-
-    /**
      * Verifies a specific product is in the cart.
      * Uses the inherited getText() which includes the 20s safety wait.
      */
     public boolean isItemInCart(String productName) {
-        String xpath = "//div[@class='inventory_item_name' and text()='" + productName + "']";
-        // Now using the improved BasePage getText to handle sync issues
-        return getText(By.xpath(xpath)).equalsIgnoreCase(productName);
+        String xpath = "//div[@class='inventory_item_name' and contains(text(),'" + productName + "')]";
+        return isElementDisplayed(By.xpath(xpath));
     }
 
     /**

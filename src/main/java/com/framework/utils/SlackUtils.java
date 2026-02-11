@@ -17,7 +17,7 @@ public class SlackUtils {
         // Retrieve webhook from Environment Variable (passed via GitHub Actions or Local OS)
         String webhookUrl = System.getenv("SLACK_WEBHOOK_URL");
 
-        // If no webhook is found, we log a warning and skip (prevents local crashes)
+        // If no webhook is found, I log a warning and skip (prevents local crashes)
         if (webhookUrl == null || webhookUrl.isEmpty()) {
             System.out.println("[WARN] SLACK_WEBHOOK_URL not found. Skipping notification.");
             return;

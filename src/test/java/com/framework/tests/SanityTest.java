@@ -24,7 +24,7 @@ public class SanityTest {
     // ---------------------------------------------------------
     // HAPPY PATH (Sanity): Browser Engine Check
     // "Bare Metal" test - No DriverFactory, no listeners.
-    // If this fails, the machine/CI node is broken (not your code).
+    // If this fails, the machine/CI node is broken.
     // ---------------------------------------------------------
     @Test(groups = {"sanity", "smoke", "web"})
     public void testRawSeleniumLaunch() {
@@ -88,7 +88,7 @@ public class SanityTest {
     @Test(groups = {"sanity", "docker"})
     public void testHubConnectivity() {
         String hubUrl = ConfigReader.getProperty("hub.url");
-        // Only run this check if we are in Docker mode, or just log a warning
+        // Only run this check if in Docker mode, or just log a warning
         if (hubUrl == null || hubUrl.contains("localhost")) {
             System.out.println("[INFO] Checking connectivity to Local Grid: " + hubUrl);
         }
@@ -108,8 +108,8 @@ public class SanityTest {
 
         } catch (Exception e) {
             System.out.println("[WARN] Grid check failed (This is expected if not running Docker): " + e.getMessage());
-            // We don't fail the test here because you might be running locally without Docker.
-            // But in a real CI environment, you might want to uncomment the line below:
+            // I won't fail the test here because I might be running locally without Docker.
+            // But in a real CI environment, I would uncomment the line below:
             // Assert.fail("Grid Infrastructure is DOWN.");
         }
     }

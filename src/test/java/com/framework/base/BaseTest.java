@@ -29,7 +29,7 @@ public class BaseTest {
         // ======================================================
         // 1. CONFIG RESOLUTION (Priority: System Prop > XML > Config)
         // ======================================================
-        // If Maven passed -Dbrowser=firefox, use that. Otherwise use XML value.
+        // If Maven passed -Dbrowser=firefox, use that otherwise use XML value.
         String targetBrowser = System.getProperty("browser", browser);
         String targetHeadless = System.getProperty("headless", headless);
 

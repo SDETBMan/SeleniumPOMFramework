@@ -4,12 +4,8 @@ import io.appium.java_client.AppiumBy;
 import io.appium.java_client.android.AndroidDriver;
 import io.appium.java_client.ios.IOSDriver;
 import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
-
-import java.util.List;
 
 /**
  * InventoryPage: Manages product selection and cart interactions for Web and Mobile.
@@ -57,8 +53,12 @@ public class InventoryPage extends BasePage {
     }
 
     public int getCartItemCount() {
-        List<WebElement> badges = driver.findElements(cartBadge);
-        return badges.isEmpty() ? 0 : Integer.parseInt(badges.get(0).getText());
+        // Now using inherited safe check and text retrieval
+        if (isElementDisplayed(cartBadge)) {
+            String countText = getText(cartBadge);
+            return countText.isEmpty() ? 0 : Integer.parseInt(countText);
+        }
+        return 0;
     }
 
     public void waitForCartBadge() {
@@ -70,30 +70,23 @@ public class InventoryPage extends BasePage {
     // ==================================================
 
     public void addToCart(String productName) {
-        if (driver instanceof AndroidDriver || driver instanceof IOSDriver) {
-            System.out.println("[WARN] Mobile AddToCart not yet implemented");
-        } else {
-            String formattedName = productName.toLowerCase().replace(" ", "-");
-            By addButtonLocator = By.id("add-to-cart-" + formattedName);
-            By removeButtonLocator = By.id("remove-" + formattedName);
+        String formattedName = productName.toLowerCase().replace(" ", "-");
+        By addButton = By.id("add-to-cart-" + formattedName);
+        By removeButton = By.id("remove-" + formattedName);
 
-            WebElement button = driver.findElement(addButtonLocator);
-            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", button);
+        // Inherited click handles the wait and logging
+        click(addButton, "Add to Cart: " + productName);
 
-            waitForVisibility(removeButtonLocator);
-        }
+        // State-sync: ensures the app processed the add before moving on
+        waitForVisibility(removeButton);
     }
 
     public void removeFromCart(String productName) {
-        // Updated XPath with a relative child selector (.) for better precision
         String xpath = "//div[text()='" + productName + "']/ancestor::div[@class='inventory_item_description']//button[text()='Remove']";
+        click(By.xpath(xpath), "Remove Button");
 
-        // Lead-level: Wait for the specific dynamic element to appear
-        waitForVisibility(By.xpath(xpath));
-
-        WebElement removeButton = driver.findElement(By.xpath(xpath));
-        removeButton.click();
-        System.out.println("[LOG] Removed item from cart: " + productName);
+        // State-sync: waits for the badge to actually disappear
+        waitForTextToBePresent(cartBadge, "");
     }
 
     public CartPage goToCart() {

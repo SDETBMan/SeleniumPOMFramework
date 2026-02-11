@@ -64,7 +64,7 @@ public class DashboardTest extends BaseTest {
         LoginPage loginPage = new LoginPage(DriverManager.getDriver());
 
         // 1. Try to force navigate to Dashboard URL without logging in
-        // Note: We need to use the full URL from config + the endpoint
+        // Note: Use the full URL from config + the endpoint
         String dashboardUrl = "https://www.saucedemo.com/inventory.html";
         DriverManager.getDriver().get(dashboardUrl);
 

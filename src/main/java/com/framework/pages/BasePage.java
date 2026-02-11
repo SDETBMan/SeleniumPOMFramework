@@ -37,9 +37,11 @@ public class BasePage {
      */
     protected boolean waitForTextToBePresent(By locator, String expectedText) {
         try {
+            if(expectedText.isEmpty()) {
+                return wait.until(ExpectedConditions.invisibilityOfElementLocated(locator));
+            }
             return wait.until(ExpectedConditions.textToBePresentInElementLocated(locator, expectedText));
         } catch (TimeoutException e) {
-            System.err.println("[WARN] Expected text '" + expectedText + "' never appeared in: " + locator);
             return false;
         }
     }
@@ -96,10 +98,6 @@ public class BasePage {
             System.err.println("[ERROR] Could not type into " + elementName);
             throw e;
         }
-    }
-
-    protected void enterText(By locator, String text) {
-        enterText(locator, text, locator.toString());
     }
 
     /**

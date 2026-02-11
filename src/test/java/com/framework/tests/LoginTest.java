@@ -47,7 +47,7 @@ public class LoginTest extends BaseTest {
         // "locked_out_user" is a standard SwagLabs test account
         loginPage.login("locked_out_user", "secret_sauce");
 
-        // Assert: We expect an error, not the inventory page
+        // Assert: Expect an error, not the inventory page
         String error = loginPage.getErrorMessage();
         System.out.println("[INFO] Error displayed: " + error);
 
