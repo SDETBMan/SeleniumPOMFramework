@@ -58,6 +58,15 @@ public class BasePage {
         }
     }
 
+    public boolean waitForUrlToContain(String fraction) {
+        try {
+            return wait.until(ExpectedConditions.urlContains(fraction));
+        } catch (TimeoutException e) {
+            System.err.println("[ERROR] URL did not contain '" + fraction + "' | Current URL: " + driver.getCurrentUrl());
+            return false;
+        }
+    }
+
     // ==================================================
     // 2. INTERACTION METHODS
     // ==================================================

@@ -97,12 +97,10 @@ public class AddToCartTest extends BaseTest {
         inventoryPage.addToCart("Sauce Labs Backpack");
 
         CartPage cartPage = inventoryPage.goToCart();
-
-
         cartPage.clickCheckout();
 
-        // Assert we are now on the checkout info page
-        Assert.assertTrue(DriverManager.getDriver().getCurrentUrl().contains("checkout-step-one"),
-                "Failed to navigate to Checkout Step 1");
+        /// Replace the direct Assert with a synchronized wait
+        boolean isOnCheckoutPage = cartPage.waitForUrlToContain("checkout-step-one");
+        Assert.assertTrue(isOnCheckoutPage, "Failed to navigate to Checkout Step 1. Current URL: " + DriverManager.getDriver().getCurrentUrl());
     }
 }

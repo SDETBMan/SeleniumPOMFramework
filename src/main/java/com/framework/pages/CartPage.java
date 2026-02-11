@@ -33,7 +33,8 @@ public class CartPage extends BasePage {
      * Uses the inherited getText() which includes the 20s safety wait.
      */
     public boolean isItemInCart(String productName) {
-        String xpath = "//div[@class='inventory_item_name' and contains(text(),'" + productName + "')]";
+        // Use a locator that finds the text anywhere in the name div
+        String xpath = String.format("//div[@class='inventory_item_name' and contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '%s')]", productName.toLowerCase());
         return isElementDisplayed(By.xpath(xpath));
     }
 
