@@ -150,8 +150,7 @@
                 <version>3.3.1</version>
                 <executions>
                     <execution>
-                        <id>copy-allure-environment</id>
-                        <phase>test</phase>
+                        <id>copy-allure-metadata</id> <phase>test</phase>
                         <goals>
                             <goal>copy-resources</goal>
                         </goals>
@@ -162,7 +161,7 @@
                                     <directory>src/test/resources</directory>
                                     <includes>
                                         <include>environment.properties</include>
-                                    </includes>
+                                        <include>categories.json</include> </includes>
                                 </resource>
                             </resources>
                         </configuration>
