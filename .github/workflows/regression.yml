@@ -8,6 +8,24 @@ on:
   workflow_dispatch:
     # CONTROL PANEL: These inputs let you decide WHAT to run manually
     inputs:
+      test_browser:
+        description: 'Target Platform / Browser'
+        required: true
+        default: 'chrome'
+        type: choice
+        options:
+          - chrome
+          - firefox
+          - android
+          - ios
+      execution_mode:
+        description: 'Execution Environment'
+        required: true
+        default: 'cloud'
+        type: choice
+        options:
+          - local
+          - cloud
       test_suite:
         description: 'Test Suite XML'
         required: true
@@ -43,10 +61,11 @@ jobs:
           cache: maven
 
       # 1. RUN FUNCTIONAL TESTS (Web / Mobile)
-      # We dynamically set 'skipAppUpload' based on your input (defaulting to true for Pushes)
       - name: Run TestNG Suite
         run: >
           mvn clean test -Dgroups=web
+          "-Dbrowser=${{ github.event.inputs.test_browser || 'chrome' }}"
+          "-Dexecution_mode=${{ github.event.inputs.execution_mode || 'local' }}"
           "-DsuiteXmlFile=${{ inputs.test_suite || 'src/test/resources/testng.xml' }}" 
           "-DskipAppUpload=${{ github.event_name == 'workflow_dispatch' && !inputs.upload_mobile_app || 'true' }}" 
           "-Dheadless=true"
@@ -57,12 +76,7 @@ jobs:
         if: ${{ inputs.run_performance == true }}
         run: mvn jmeter:jmeter
 
-      # 3. GENERATE REPORT (Even if tests fail)
-      - name: Generate Allure Report
-        if: always()
-        run: mvn allure:report
-
-      # 4. UPLOAD ARTIFACTS (Save the report to zip)
+      # 3. UPLOAD ARTIFACTS (Save the report to zip)
       - name: Upload Test Report
         if: always()
         uses: actions/upload-artifact@v4
@@ -71,16 +85,7 @@ jobs:
           path: target/site/allure-maven-plugin/
           retention-days: 7
 
-      # 5. Pull existing history from the gh-pages branch so the Trend chart works
-      - name: Load Allure history
-        uses: actions/checkout@v3
-        if: always()
-        continue-on-error: true
-        with:
-          ref: gh-pages
-          path: gh-pages
-
-      # 6. Build the report using the results in target/allure-results
+      # 4. Build the report using the results in target/allure-results
       - name: Build Allure Report
         uses: simple-elf/allure-report-action@master
         if: always()
@@ -90,7 +95,7 @@ jobs:
           allure_report: allure-report
           allure_history: allure-history
 
-      # 7. Push the finalized report back to the gh-pages branch
+      # 5. Push the finalized report back to the gh-pages branch
       - name: Deploy Allure Report to GitHub Pages
         if: always()
         uses: peaceiris/actions-gh-pages@v3
