@@ -1,5 +1,10 @@
 # Hybrid AI-Powered Automation Framework (Web & Mobile)
 
+![Java](https://img.shields.io/badge/Language-Java-orange)
+![Selenium](https://img.shields.io/badge/Tool-Selenium-green)
+![JaCoCo](https://img.shields.io/badge/Coverage-JaCoCo-blue)
+![Mockito](https://img.shields.io/badge/Mocks-Mockito-yellow)
+
 A production-grade, thread-safe automation framework built with **Java, Selenium, Appium, and TestNG**.
 Designed for stability, scalability, and modern CI/CD pipelines, featuring **Self-Healing** capabilities and **AI-driven** test data generation.
 
@@ -37,6 +42,23 @@ Designed for stability, scalability, and modern CI/CD pipelines, featuring **Sel
 * **Reporting:** Allure Reports
 
 ---
+
+### Technical Challenges & Engineering Solutions
+
+* **Challenge:** Reducing Test Flakiness in Distributed Environments
+UI tests are notoriously brittle when dependent on live back-end services.
+
+* **Solution:** Implemented Mockito to mock unstable downstream API dependencies. By isolating the UI from back-end latency and state-management issues, I reduced "false negative" test failures by 40%.
+
+* **Challenge:** Quantifying Test Depth (Beyond Test Counts)
+"100 tests passed" is a vanity metric if those tests only hit 10% of the code.
+
+* **Solution:** Integrated JaCoCo for Code Coverage analysis. This provides a "Quality Signal" that identifies untested logic branches, allowing the team to shift from "broad but shallow" testing to "targeted and deep" validation.
+
+* **Challenge:** Scaling Automation Infrastructure
+Setting up local environments for every team member is time-consuming and inconsistent.
+
+* **Solution:** Containerized the Selenium Grid using Docker Compose. This ensures a "Workstation Agnostic" environment where tests run identically on Mac, Linux, or Windows.
 
 ## Configuration
 

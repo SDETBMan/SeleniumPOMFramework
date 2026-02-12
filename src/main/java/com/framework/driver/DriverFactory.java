@@ -113,6 +113,10 @@ public class DriverFactory {
                     delegate = new AndroidDriver(remoteUrl, androidOptions);
                     break;
                 case "ios":
+                    // Add specific iOS Real Device capabilities for Sauce Labs
+                    iosOptions.setCapability("appium:deviceName", "iPhone.*");
+                    iosOptions.setCapability("appium:platformVersion", "17"); // Matches modern iOS
+                    iosOptions.setCapability("appium:automationName", "XCUITest");
                     iosOptions.setCapability("sauce:options", sauceOptions);
                     delegate = new IOSDriver(remoteUrl, iosOptions);
                     break;
