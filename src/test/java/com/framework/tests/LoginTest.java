@@ -44,8 +44,12 @@ public class LoginTest extends BaseTest {
 
         System.out.println("[INFO] Executing Locked Out User Test...");
 
-        // "locked_out_user" is a standard SwagLabs test account
-        loginPage.login("locked_out_user", "secret_sauce");
+        // Credentials sourced from config so the locked-out persona can be
+        // swapped per environment without touching test code.
+        loginPage.login(
+                ConfigReader.getProperty("locked_out_username"),
+                ConfigReader.getProperty("app_password")
+        );
 
         // Assert: Expect an error, not the inventory page
         String error = loginPage.getErrorMessage();

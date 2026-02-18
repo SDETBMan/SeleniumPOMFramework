@@ -13,17 +13,28 @@
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <selenium.version>4.16.1</selenium.version>
-        <testng.version>7.8.0</testng.version>
-        <allure.version>2.25.0</allure.version>
-        <mysql.version>8.3.0</mysql.version>
-        <healenium.version>3.4.8</healenium.version>
+        <!-- ── Core test stack ───────────────────────────────────────── -->
+        <selenium.version>4.21.0</selenium.version>      <!-- was 4.16.1 -->
+        <testng.version>7.10.2</testng.version>          <!-- was 7.8.0  -->
+        <allure.version>2.27.0</allure.version>          <!-- was 2.25.0 -->
+
+        <!-- ── Mobile ───────────────────────────────────────────────── -->
+        <appium.version>9.3.0</appium.version>           <!-- was 9.0.0  -->
+
+        <!-- ── Data / DB ────────────────────────────────────────────── -->
+        <mysql.version>9.0.0</mysql.version>             <!-- was 8.3.0  – CVE fixes in 9.x -->
+        <json.version>20240303</json.version>            <!-- was 20231013 -->
+
+        <!-- ── API / Mocking ────────────────────────────────────────── -->
         <restassured.version>5.4.0</restassured.version>
-        <appium.version>9.0.0</appium.version>
-        <json.version>20231013</json.version>
-        <mockito.version>5.10.0</mockito.version>
-        <jacoco.version>0.8.11</jacoco.version>
-        <aspectj.version>1.9.20</aspectj.version>
+        <mockito.version>5.12.0</mockito.version>        <!-- was 5.10.0 -->
+
+        <!-- ── Coverage / Weaving ───────────────────────────────────── -->
+        <jacoco.version>0.8.12</jacoco.version>          <!-- was 0.8.11 -->
+        <aspectj.version>1.9.22</aspectj.version>        <!-- was 1.9.20 -->
+
+        <!-- ── Self-healing ─────────────────────────────────────────── -->
+        <healenium.version>3.4.8</healenium.version>
 
         <ios_app_path>src/test/resources/apps/iOS.Simulator.SauceLabs.Mobile.Sample.app.2.7.1.app</ios_app_path>
     </properties>
@@ -88,10 +99,11 @@
             <version>${json.version}</version>
         </dependency>
 
+        <!-- was 2.16.1 – kept current to avoid known deserialization CVEs -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>2.16.1</version>
+            <version>2.17.1</version>
         </dependency>
 
         <dependency>
@@ -114,13 +126,20 @@
             </exclusions>
         </dependency>
 
+        <!-- was 1.18.30 -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.30</version>
+            <version>1.18.32</version>
             <scope>provided</scope>
         </dependency>
 
+        <!--
+            NOTE: javax.xml.bind 2.3.1 still works on Java 17 when supplied
+            as an explicit dependency. Migrating to jakarta.xml.bind-api 4.x
+            requires a package-name change (javax → jakarta) across the codebase,
+            so it is left for a dedicated refactor sprint.
+        -->
         <dependency>
             <groupId>javax.xml.bind</groupId>
             <artifactId>jaxb-api</artifactId>
@@ -133,20 +152,22 @@
             <version>2.3.1</version>
         </dependency>
 
+        <!-- was 2.0.7 -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
-            <version>2.0.7</version>
+            <version>2.0.13</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
 
     <build>
         <plugins>
+            <!-- was 3.11.0 -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.11.0</version>
+                <version>3.13.0</version>
                 <configuration>
                     <source>17</source>
                     <target>17</target>
@@ -200,10 +221,11 @@
                 </executions>
             </plugin>
 
+            <!-- was 3.2.5 -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.2.5</version>
+                <version>3.3.1</version>
                 <configuration>
                     <suiteXmlFiles>
                         <suiteXmlFile>testng.xml</suiteXmlFile>
@@ -260,7 +282,8 @@
                 <artifactId>allure-maven</artifactId>
                 <version>2.12.0</version>
                 <configuration>
-                    <reportVersion>2.25.0</reportVersion>
+                    <!-- kept in sync with allure.version property -->
+                    <reportVersion>2.27.0</reportVersion>
                 </configuration>
             </plugin>
         </plugins>

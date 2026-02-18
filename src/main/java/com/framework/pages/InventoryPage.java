@@ -1,5 +1,6 @@
 package com.framework.pages;
 
+import com.framework.utils.ConfigReader;
 import io.appium.java_client.AppiumBy;
 import io.appium.java_client.android.AndroidDriver;
 import io.appium.java_client.ios.IOSDriver;
@@ -118,8 +119,9 @@ public class InventoryPage extends BasePage {
                 ((JavascriptExecutor) driver).executeScript("arguments[0].click();", element);
                 waitForUrlToContain("cart.html");
             } catch (Exception e) {
-                // Last resort: Direct navigation if the UI is completely stuck
-                driver.get("https://www.saucedemo.com/cart.html");
+                // Last resort: Direct navigation if the UI is completely stuck.
+                // URL is composed from config so it reflects any environment changes.
+                driver.get(ConfigReader.getProperty("url") + "cart.html");
             }
         }
 

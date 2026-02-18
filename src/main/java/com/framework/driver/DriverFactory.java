@@ -75,10 +75,13 @@ public class DriverFactory {
 
         } else {
             // --- LOCAL EXECUTION (Default) ---
+            // Appium URL is read from config so it works across local, CI, and remote Appium servers.
+            String appiumUrl = ConfigReader.getProperty("appium_url");
+
             if ("android".equalsIgnoreCase(browser)) {
-                delegate = new AndroidDriver(new URL("http://127.0.0.1:4723"), androidOptions);
+                delegate = new AndroidDriver(new URL(appiumUrl), androidOptions);
             } else if ("ios".equalsIgnoreCase(browser)) {
-                delegate = new IOSDriver(new URL("http://127.0.0.1:4723"), iosOptions);
+                delegate = new IOSDriver(new URL(appiumUrl), iosOptions);
             } else {
                 switch (browser.toLowerCase()) {
                     case "chrome": delegate = new ChromeDriver(chromeOptions); break;

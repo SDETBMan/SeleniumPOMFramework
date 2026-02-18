@@ -1,5 +1,6 @@
 package com.framework.api;
 
+import com.framework.utils.ConfigReader;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import org.testng.Assert;
@@ -7,14 +8,14 @@ import org.testng.annotations.Test;
 
 /**
  * UserApiTest: Validates backend service health and data integrity.
- *
  */
 public class UserApiTest {
 
     @Test(groups = {"integration", "smoke"})
     public void testUserApiHealth() {
-        // Retrieve endpoint from Config (Allows environment switching)
-        String endpoint = "https://jsonplaceholder.typicode.com/users/1";
+        // Base URL from config; resource path appended here so other tests
+        // can reuse api.base.url without duplicating the full URL.
+        String endpoint = ConfigReader.getProperty("api.base.url") + "/users/1";
 
         System.out.println("[API-LOG] Requesting User Data from: " + endpoint);
 

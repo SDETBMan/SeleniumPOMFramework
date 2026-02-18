@@ -40,8 +40,8 @@ public class SanityTest {
             // 2. Direct Driver Launch (Uses Selenium Manager built-in to 4.x)
             driver = new ChromeDriver(options);
 
-            // 3. Navigation
-            driver.get("https://www.saucedemo.com/");
+            // 3. Navigation — URL from config so it works across all environments
+            driver.get(ConfigReader.getProperty("url"));
 
             // 4. Verification
             WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));

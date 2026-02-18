@@ -63,34 +63,36 @@ public class DashboardTest extends BaseTest {
     public void testDirectAccessWithoutLogin() {
         LoginPage loginPage = new LoginPage(DriverManager.getDriver());
 
-        // 1. Try to force navigate to Dashboard URL without logging in
-        // Note: Use the full URL from config + the endpoint
-        String dashboardUrl = "https://www.saucedemo.com/inventory.html";
+        // 1. Try to force navigate to Dashboard URL without logging in.
+        //    URL is built from config so it works across all environments.
+        String dashboardUrl = ConfigReader.getProperty("url") + "inventory.html";
         DriverManager.getDriver().get(dashboardUrl);
 
         // 2. Assert: Application should kick us back to Login
-        // Note: SwagLabs usually displays an error "You can only access... when you are logged in."
         Assert.assertTrue(loginPage.isLoginButtonDisplayed(),
                 "SECURITY FAILURE: Unauthenticated user was able to access Dashboard!");
 
         // Optional: specific error message check
         String error = loginPage.getErrorMessage();
-        if(!error.isEmpty()) {
+        if (!error.isEmpty()) {
             Assert.assertTrue(error.contains("only access"), "Unexpected error message: " + error);
         }
     }
 
     /**
      * Test Data Provider: Covers standard, UI-bug, and latency-heavy user accounts.
+     * Persona usernames and the shared password are sourced from config.properties
+     * so they can be overridden per environment without touching test code.
      */
     @DataProvider(name = "loginData")
     public Object[][] getLoginData() {
+        String password = ConfigReader.getProperty("app_password");
         return new Object[][]{
-                {"standard_user", "secret_sauce"},
+                {ConfigReader.getProperty("persona.standard"),     password},
                 // "problem_user" has broken images (good for checking resilience)
-                {"problem_user", "secret_sauce"},
+                {ConfigReader.getProperty("persona.problem"),      password},
                 // "performance_glitch_user" takes 5 seconds to load (good for checking timeouts)
-                {"performance_glitch_user", "secret_sauce"}
+                {ConfigReader.getProperty("persona.performance"),  password}
         };
     }
 }
