@@ -4,10 +4,12 @@
     <listeners>
         <listener class-name="io.qameta.allure.testng.AllureTestNg"/>
         <listener class-name="com.framework.listeners.TestListener"/>
+        <listener class-name="com.framework.utils.AnnotationTransformer"/>
     </listeners>
 
     <test name="Mobile - iOS (iPhone 15)">
-        <parameter name="platform" value="ios" />
+        <parameter name="browser" value="ios" />
+        <parameter name="headless" value="false" />
         <parameter name="deviceName" value="iPhone 15" />
         <classes>
             <class name="com.framework.tests.LoginTest" />
@@ -15,7 +17,8 @@
     </test>
 
     <test name="Mobile - Android (Pixel)">
-        <parameter name="platform" value="android" />
+        <parameter name="browser" value="android" />
+        <parameter name="headless" value="false" />
         <parameter name="deviceName" value="Pixel_7_Pro" />
         <classes>
             <class name="com.framework.tests.LoginTest" />

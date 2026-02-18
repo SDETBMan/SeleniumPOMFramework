@@ -1,5 +1,6 @@
 package com.framework.pages;
 
+import com.framework.utils.ConfigReader;
 import io.appium.java_client.android.AndroidDriver;
 import io.appium.java_client.ios.IOSDriver;
 import org.openqa.selenium.*;
@@ -14,8 +15,8 @@ public class BasePage {
 
     public BasePage(WebDriver driver) {
         this.driver = driver;
-        // 20s timeout is the "sweet spot" for GitHub Actions and Remote Grids
-        this.wait = new WebDriverWait(driver, Duration.ofSeconds(20));
+        int timeout = Integer.parseInt(ConfigReader.getProperty("timeout.explicit", "20"));
+        this.wait = new WebDriverWait(driver, Duration.ofSeconds(timeout));
     }
 
     // ==================================================
@@ -26,7 +27,7 @@ public class BasePage {
         try {
             wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
         } catch (TimeoutException e) {
-            System.err.println("[ERROR] Element not visible after 20s: " + locator);
+            System.err.println("[ERROR] Element not visible after timeout: " + locator);
             throw e;
         }
     }

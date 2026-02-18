@@ -1,7 +1,10 @@
 package com.framework.utils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+
+import java.util.Map;
 
 /**
  * SlackUtils: Dispatches real-time test execution alerts to Slack.
@@ -24,8 +27,8 @@ public class SlackUtils {
         }
 
         try {
-            // Slack expects a simple JSON object: {"text": "your message"}
-            String jsonPayload = "{\"text\": \"" + message + "\"}";
+            // Use Jackson to safely serialize the payload — avoids broken JSON if message contains quotes or newlines
+            String jsonPayload = new ObjectMapper().writeValueAsString(Map.of("text", message));
 
             RestAssured.given()
                     .contentType(ContentType.JSON)

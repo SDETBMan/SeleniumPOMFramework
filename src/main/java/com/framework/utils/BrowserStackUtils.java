@@ -35,8 +35,10 @@ public class BrowserStackUtils {
         }
 
         // Uploading both platforms
-        uploadAppIfExists(androidPath, "QA_Director_Android_Build", user, key);
-        uploadAppIfExists(iosPath, "QA_Director_iOS_Build", user, key);
+        String androidAppId = ConfigReader.getProperty("browserstack.android.app.id", "QA_Director_Android_Build");
+        String iosAppId     = ConfigReader.getProperty("browserstack.ios.app.id",     "QA_Director_iOS_Build");
+        uploadAppIfExists(androidPath, androidAppId, user, key);
+        uploadAppIfExists(iosPath, iosAppId, user, key);
 
         System.out.println("[INFO] Upload process finalized.");
     }

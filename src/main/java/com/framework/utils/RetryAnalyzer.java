@@ -10,8 +10,11 @@ import org.testng.ITestResult;
 public class RetryAnalyzer implements IRetryAnalyzer {
     private int count = 0;
 
-    // I limit to 1 retry to keep execution times efficient.
-    private static final int MAX_RETRY_COUNT = 1;
+    private static final int MAX_RETRY_COUNT;
+
+    static {
+        MAX_RETRY_COUNT = Integer.parseInt(ConfigReader.getProperty("retry.max", "1"));
+    }
 
     @Override
     public boolean retry(ITestResult result) {

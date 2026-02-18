@@ -31,7 +31,9 @@ public class TestListener implements ITestListener {
     @Override
     public void onTestFailure(ITestResult result) {
         System.err.println("[FAIL] " + result.getMethod().getMethodName());
-        System.err.println("[ERROR] Reason: " + result.getThrowable().getMessage());
+        Throwable t = result.getThrowable();
+        String reason = (t != null) ? t.getMessage() : "No exception captured";
+        System.err.println("[ERROR] Reason: " + reason);
 
         WebDriver driver = DriverManager.getDriver();
         if (driver != null) {

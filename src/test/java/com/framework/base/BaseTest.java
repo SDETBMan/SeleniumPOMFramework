@@ -80,7 +80,8 @@ public class BaseTest {
      * Helper method to configure timeouts, window size, and navigation.
      */
     private void configureDriver(WebDriver driver, String browser, String headless) {
-        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
+        int implicitTimeout = Integer.parseInt(ConfigReader.getProperty("timeout.implicit", "10"));
+        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(implicitTimeout));
 
         boolean isMobile = browser.equalsIgnoreCase("android") || browser.equalsIgnoreCase("ios");
 

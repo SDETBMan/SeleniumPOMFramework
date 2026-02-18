@@ -6,7 +6,6 @@ import com.framework.pages.CartPage;
 import com.framework.pages.InventoryPage;
 import com.framework.pages.LoginPage;
 import com.framework.utils.ConfigReader;
-import org.openqa.selenium.By;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -87,9 +86,9 @@ public class AddToCartTest extends BaseTest {
         // 3. ACT: Add item
         inventoryPage.addToCart("Sauce Labs Backpack");
 
-        // 4. SYNC: Explicitly wait for the badge to show '1'
-        // This ensures the browser's internal state has updated
-        inventoryPage.waitForTextToBePresent(By.className("shopping_cart_badge"), "1");
+        // 4. SYNC: Wait for badge visibility then assert count — uses page object locator, not raw By
+        inventoryPage.waitForCartBadge();
+        Assert.assertEquals(inventoryPage.getCartItemCount(), 1, "Cart badge count was not 1 after adding item.");
 
         // 5. ACT: Remove the item
         inventoryPage.removeFromCart("Sauce Labs Backpack");
@@ -107,11 +106,8 @@ public class AddToCartTest extends BaseTest {
         loginPage.login(ConfigReader.getProperty("app_username"), ConfigReader.getProperty("app_password"));
         inventoryPage.addToCart("Sauce Labs Backpack");
 
-        // NEW SYNC: Wait for badge to show '1' so we know the session updated
-        inventoryPage.waitForTextToBePresent(By.className("shopping_cart_badge"), "1");
-
-        // Give the UI half a second to settle before the navigation click
-        try { Thread.sleep(500); } catch (InterruptedException e) { e.printStackTrace(); }
+        // SYNC: Wait for badge visibility — replaces both the inline By.className and the Thread.sleep
+        inventoryPage.waitForCartBadge();
 
         CartPage cartPage = inventoryPage.goToCart();
         cartPage.clickCheckout();
