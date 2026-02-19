@@ -67,8 +67,9 @@ This framework requires specific environment variables for security, particularl
 | Variable | Description | Default / Example |
 | :--- | :--- | :--- |
 | `OPENAI_API_KEY` | **Required** for `AiHelper` to generate test data. | `sk-proj-123...` |
-| `BROWSERSTACK_USER`| Required if running on Cloud Grid. | `BS_User_123` |
-| `BROWSERSTACK_KEY` | Required if running on Cloud Grid. | `BS_Key_ABC` |
+| `BROWSERSTACK_USERNAME` | Required if running on Cloud Grid. | `BS_User_123` |
+| `BROWSERSTACK_ACCESS_KEY` | Required if running on Cloud Grid. | `BS_Key_ABC` |
+| `SLACK_WEBHOOK_URL` | Optional — enables Slack notifications on suite completion. | `https://hooks.slack.com/...` |
 | `HEADLESS` | Toggles browser UI (CI default: true). | `true` |
 | `HUB_URL` | Selenium Grid URL (Docker). | `http://localhost:4444/wd/hub` |
 | `APPIUM_URL` | URL for Mobile Driver (Local). | `http://127.0.0.1:4723` |
@@ -187,6 +188,7 @@ SeleniumPOMFramework
 │       │   │   ├── LoginTest.java
 │       │   │   └── SanityTest.java
 │       │   └── unit
+│       │       ├── FrameworkUnitTest.java   # Unit tests for StringFormatter & DateHelper
 │       │       └── StringUtilsTest.java     # Unit tests for utility helpers
 │       ├── jmeter
 │       │   └── login_load_test.jmx          # JMeter load test scenarios
