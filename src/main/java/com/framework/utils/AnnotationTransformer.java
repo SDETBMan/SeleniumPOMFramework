@@ -15,7 +15,13 @@ public class AnnotationTransformer implements IAnnotationTransformer {
     @Override
     public void transform(ITestAnnotation annotation, Class testClass, Constructor testConstructor, Method testMethod) {
 
-        // Globally attach the RetryAnalyzer to every test case
+        // Unit tests are deterministic — retrying them on failure adds no value and
+        // causes mock re-initialization issues when RetryAnalyzer spawns a new instance.
+        for (String group : annotation.getGroups()) {
+            if ("unit".equals(group)) return;
+        }
+
+        // Attach RetryAnalyzer to all non-unit tests (UI, API, sanity, etc.)
         annotation.setRetryAnalyzer(RetryAnalyzer.class);
     }
 }

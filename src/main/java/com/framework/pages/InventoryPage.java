@@ -53,12 +53,17 @@ public class InventoryPage extends BasePage {
     }
 
     public int getCartItemCount() {
-        // Now using inherited safe check and text retrieval
-        if (isElementDisplayed(cartBadge)) {
-            String countText = getText(cartBadge);
-            return countText.isEmpty() ? 0 : Integer.parseInt(countText);
+        // Disable implicit wait for this instant check — the badge either exists or it doesn't.
+        // With a 10s implicit wait, findElement hangs the full timeout on an empty cart.
+        driver.manage().timeouts().implicitlyWait(java.time.Duration.ofSeconds(0));
+        try {
+            return Integer.parseInt(driver.findElement(cartBadge).getText());
+        } catch (Exception e) {
+            return 0;
+        } finally {
+            int implicit = Integer.parseInt(ConfigReader.getProperty("timeout.implicit", "10"));
+            driver.manage().timeouts().implicitlyWait(java.time.Duration.ofSeconds(implicit));
         }
-        return 0;
     }
 
     public void waitForCartBadge() {
@@ -88,20 +93,13 @@ public class InventoryPage extends BasePage {
     }
 
     public void removeFromCart(String productName) {
-        String xpath = "//div[text()='" + productName + "']/ancestor::div[@class='inventory_item_description']//button[text()='Remove']";
-        By removeButton = By.xpath(xpath);
+        // Use the same ID pattern as addToCart — reliable, no XPath traversal
+        String formattedName = productName.toLowerCase().replace(" ", "-");
+        By removeButton = By.id("remove-" + formattedName);
 
-        // Standard click
         click(removeButton, "Remove Button: " + productName);
-
-        // Check if badge is gone, if not, force the click
-        boolean badgeGone = waitForTextToBePresent(cartBadge, "");
-
-        if (!badgeGone) {
-            System.out.println("[WARN] Standard Remove click failed. Forcing JS click.");
-            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", driver.findElement(removeButton));
-            waitForTextToBePresent(cartBadge, "");
-        }
+        // No DOM-invisibility wait here — getCartItemCount() is now a direct find (no timeout),
+        // so the test assertion catches the zero state immediately without a 20s hang.
     }
 
     public CartPage goToCart() {

@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet new:*)",
+      "Bash(dotnet sln add:*)",
+      "Bash(dotnet sln:*)",
+      "Bash(echo:*)",
+      "Bash(powershell -Command \"Get-ChildItem ''C:\\\\Users\\\\Brian\\\\IdeaProjects\\\\PlaywrightDotNetFramework\\\\src\\\\Framework.Core'' | Select-Object Name\")"
+    ]
+  }
+}

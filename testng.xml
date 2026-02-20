@@ -55,6 +55,7 @@
         <classes>
             <class name="com.framework.unit.FrameworkUnitTest" />
             <class name="com.framework.unit.StringUtilsTest" />
+            <class name="com.framework.unit.LoginServiceTest" />
         </classes>
     </test>
 </suite>
